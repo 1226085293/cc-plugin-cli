@@ -52,34 +52,57 @@ function getFilenames(baseDir: string, files: string[]): string[] {
 		return path.resolve(baseDir, filename);
 	});
 }
-function complier (fileNames: string[], options: ts.CompilerOptions): void {
-    let program = ts.createProgram(fileNames, options)
-    let emitResult = program.emit()
-  
-    let allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics)
-  
-    allDiagnostics.forEach(diagnostics => {
-      if (diagnostics.file) {
-        let { line, character } = diagnostics.file.getLineAndCharacterOfPosition(diagnostics.start!)
-        let message = ts.flattenDiagnosticMessageText(diagnostics.messageText, '\n');
-        console.log(`${diagnostics.file.fileName} (${line + 1}, ${character + 1}): ${message}`);
-      } else {
-        console.log(ts.flattenDiagnosticMessageText(diagnostics.messageText, '\n'))
-      }
-    })
-  
-    let exitCode = emitResult.emitSkipped ? 1 : 0;
-    console.log(`Process exiting with code ${exitCode}.`);
-    process.exit(exitCode)
-  }
+	function complier (fileNames: string[], options: ts.CompilerOptions): void {
+		let program = ts.createProgram(fileNames, options)
+		let emitResult = program.emit()
 
+		let allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics)
+
+		allDiagnostics.forEach(diagnostics => {
+			if (diagnostics.file) {
+			let { line, character } = diagnostics.file.getLineAndCharacterOfPosition(diagnostics.start!)
+			let message = ts.flattenDiagnosticMessageText(diagnostics.messageText, '\n');
+			console.log(`${diagnostics.file.fileName} (${line + 1}, ${character + 1}): ${message}`);
+			} else {
+			console.log(ts.flattenDiagnosticMessageText(diagnostics.messageText, '\n'))
+			}
+		})
+
+		let exitCode = emitResult.emitSkipped ? 1 : 0;
+		console.log(`Process exiting with code ${exitCode}.`);
+		process.exit(exitCode)
+	}
+
+
+
+
+
+
+
+
+
+	// 编译单包
     export function single(path_s_: string): void {
-        path_s_ = path.resolve(path_s_);
-        debugger
-        let package_name_s = path_s_.slice(path_s_.lastIndexOf("\\") + 2, path_s_.length);
-        const config_path_s = ts.findConfigFile(path_s_, ts.sys.fileExists);
-        const config_file_a: ts.CompilerOptions = ts.readConfigFile(config_path_s, ts.sys.readFile).config;
-        let [files, compilerOptions] = getTSConfig(config_path_s);
+        // 路径转换
+		path_s_ = path.resolve(path_s_);
+		/**package.json路径 */
+		const package_config_path_s = path.resolve(path_s_, "package.json");
+		/**tsconfig.json路径 */
+        const tsconfig_path_s = path.resolve(path_s_, "tsconfig.json");
+		// 安检
+		{
+			let err_ss: string[] = [];
+			if (!fs.existsSync(package_config_path_s)) {
+				err_ss.push(`${err_ss.length ? "\n" : ""}未找到package.json`);
+			}
+			if (!fs.existsSync(tsconfig_path_s)) {
+				err_ss.push(`${err_ss.length ? "\n" : ""}未找到tsconfig.json`);
+			}
+			while (err_ss)
+		}
+		const package_config = ts.sys.readFile(package_config_path_s);
+        const config_file_a: ts.CompilerOptions = ts.readConfigFile(tsconfig_path_s, ts.sys.readFile).config;
+        let [files, compilerOptions] = getTSConfig(tsconfig_path_s);
         let filenames: string[] = [];
         if (compilerOptions.rootDirs) {
             compilerOptions.rootDirs.forEach(v1_s=> {
