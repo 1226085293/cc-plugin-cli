@@ -1,0 +1,1 @@
+export { default as compile } from "./src/compile";
