@@ -4,7 +4,7 @@
   "description": "cocos creator插件编译包",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node dist/test/test"
   },
   "keywords": [
     "cocos",

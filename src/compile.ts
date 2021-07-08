@@ -2,57 +2,48 @@ import fs from 'fs';
 import child_process from 'child_process';
 import path from 'path';
 import ts from "typescript";
+import log from './tool/log';
 
-module compile {
+class compile {
+	/* ***************private*************** */
     /**项目路径 */
-    let project_path_s = path.resolve(__dirname.slice(0, __dirname.indexOf("node_modules")));
-//    export function all(): void {
-//     // 打印选项
-//     let project_path_s = __dirname.slice(0, __dirname.indexOf("node_modules"));
-//     let package_path_s = path.resolve(project_path_s, "packages");
-//     fs.readdirSync(package_path_s).forEach(v1_s=> {
-//         let path_s = `${package_path_s}/${v1_s}`;
-//         if (fs.existsSync(`${path_s}/tsconfig.json`)) {
-//             console.warn(`tsc -p ${path_s}/tsconfig.json`);
-//             child_process.exec(`tsc -p ${path_s}/tsconfig.json`, (error, stdout, stderr)=> {
-//                 if (stdout) {
-//                     console.error(stdout);
-//                 }
-//             });
-//         }
-//     });
-//    }
-function getTSConfig(fileName: string): [string[], ts.CompilerOptions] {
-	// TODO this needs a better design than merging stuff into options.
-	// the trouble is what to do when no tsconfig is specified...
-
-	const configText = fs.readFileSync(fileName, { encoding: 'utf8' });
-	const result = ts.parseConfigFileTextToJson(fileName, configText);
-	if (result.error) {
-		throw result.error;
-	}
-	const configObject = result.config;
-	const configParseResult = ts.parseJsonConfigFileContent(configObject, ts.sys, path.dirname(fileName));
-	if (configParseResult.errors && configParseResult.errors.length) {
-		throw configParseResult.errors;
-	}
-
-	return [
-		configParseResult.fileNames,
-		configParseResult.options
-	];
-}
-function getFilenames(baseDir: string, files: string[]): string[] {
-	return files.map(function (filename) {
-		const resolvedFilename = path.resolve(filename);
-		if (resolvedFilename.indexOf(baseDir) === 0) {
-			return resolvedFilename;
+    private project_path_s = path.resolve(__dirname.slice(0, __dirname.indexOf("node_modules")));
+	/* ***************功能函数*************** */
+	/**获取包含文件 */
+	private _get_include_file(ts_config_parse_: ts.ParsedCommandLine): string[] {
+		let option = ts_config_parse_.options;
+		let file_name_ss = ts_config_parse_.fileNames;
+		/**根目录 */
+		let root_dir_ss: string[] = [];
+		// 获取所有根目录
+		{
+			if (option.rootDirs) {
+				option.rootDirs.forEach(v1_s=> {
+					root_dir_ss.push(path.resolve(v1_s));
+				});
+			} else {
+				root_dir_ss.push(path.resolve(option.rootDir || option.project || <string>option.baseDir));
+			}
 		}
-
-		return path.resolve(baseDir, filename);
-	});
-}
-	function complier (fileNames: string[], options: ts.CompilerOptions): void {
+		/**包含文件 */
+		let include_file_ss: string[] = [];
+		// 更新包含文件
+		{
+			let temp1_s: string;
+			root_dir_ss.forEach(v1_s=> {
+				include_file_ss.push(...file_name_ss.map((v2_s)=> {
+					temp1_s = path.resolve(v2_s);
+					if (temp1_s.indexOf(v1_s) === 0) {
+						return temp1_s;
+					}
+					return path.resolve(v1_s, v2_s);
+				}));
+			});
+		}
+		return include_file_ss;
+	}
+	/**编译项目 */
+	private _complier (fileNames: string[], options: ts.CompilerOptions): void {
 		let program = ts.createProgram(fileNames, options)
 		let emitResult = program.emit()
 
@@ -72,58 +63,55 @@ function getFilenames(baseDir: string, files: string[]): string[] {
 		console.log(`Process exiting with code ${exitCode}.`);
 		process.exit(exitCode)
 	}
-
-
-
-
-
-
-
-
-
 	// 编译单包
-    export function single(path_s_: string): void {
+    public single(path_s_: string): void {
         // 路径转换
 		path_s_ = path.resolve(path_s_);
 		/**package.json路径 */
-		const package_config_path_s = path.resolve(path_s_, "package.json");
+		let package_config_path_s = path.resolve(path_s_, "package.json");
 		/**tsconfig.json路径 */
-        const tsconfig_path_s = path.resolve(path_s_, "tsconfig.json");
+        let ts_config_path_s = path.resolve(path_s_, "tsconfig.json");
 		// 安检
 		{
-			let err_ss: string[] = [];
 			if (!fs.existsSync(package_config_path_s)) {
-				err_ss.push(`${err_ss.length ? "\n" : ""}未找到package.json`);
+				log.push("未找到package.json");
 			}
-			if (!fs.existsSync(tsconfig_path_s)) {
-				err_ss.push(`${err_ss.length ? "\n" : ""}未找到tsconfig.json`);
+			if (!fs.existsSync(ts_config_path_s)) {
+				log.push("未找到tsconfig.json");
 			}
-			while (err_ss)
+			if (log.e()) {
+				return;
+			}
 		}
-		const package_config = ts.sys.readFile(package_config_path_s);
-        const config_file_a: ts.CompilerOptions = ts.readConfigFile(tsconfig_path_s, ts.sys.readFile).config;
-        let [files, compilerOptions] = getTSConfig(tsconfig_path_s);
-        let filenames: string[] = [];
-        if (compilerOptions.rootDirs) {
-            compilerOptions.rootDirs.forEach(v1_s=> {
-                filenames.push(...getFilenames(v1_s, files));
-            });
-        } else {
-            const baseDir = path.resolve(compilerOptions.rootDir || compilerOptions.project || <string>compilerOptions.baseDir);
-            filenames = getFilenames(baseDir, files);
-        }
-        complier(filenames, compilerOptions);
+		/**package.json */
+		let package_config: any;
+		/**tsconfig.json */
+		let ts_config: ts.CompilerOptions;
+		// 读取配置文件
+		{
+			let temp1 = ts.readConfigFile(package_config_path_s, ts.sys.readFile);
+			let temp2 = ts.readConfigFile(ts_config_path_s, ts.sys.readFile);
+			log.push(temp1.error);
+			log.push(temp2.error);
+			if (log.e()) {
+				return;
+			}
+			package_config = temp1.config;
+			ts_config = temp2.config;
+		}
+		// 解析配置文件
+		let ts_config_parse: ts.ParsedCommandLine;
+		{
+			ts_config_parse = ts.parseJsonConfigFileContent(ts_config, ts.sys, path.dirname(ts_config_path_s));
+			if (ts_config_parse.errors && ts_config_parse.errors.length) {
+				throw ts_config_parse.errors;
+			}
+		}
+		// 获取包含文件
+		let include_file_ss = this._get_include_file(ts_config_parse);
+		// 编译
+        this._complier(include_file_ss, ts_config_parse.options);
     }
 }
 
-
-
-
-// complier(process.argv.slice(2), {
-//   noEmitOnError: true,
-//   noImplicitAny: true,
-//   target: ts.ScriptTarget.ES5,
-//   module: ts.ModuleKind.CommonJS
-// })
-
-export default compile;
+export default new compile;
