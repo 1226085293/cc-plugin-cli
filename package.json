@@ -4,7 +4,7 @@
   "description": "cocos creator插件编译包",
   "main": "dist/index.js",
   "scripts": {
-    "test": "node dist/test/test"
+    "测试": "node dist/test/test"
   },
   "keywords": [
     "cocos",
@@ -18,6 +18,7 @@
   },
   "devDependencies": {
     "@types/node": "^16.0.0",
+    "chalk": "^4.1.1",
     "typescript": "^4.3.5"
   },
   "dependencies": {}

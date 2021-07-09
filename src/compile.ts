@@ -1,8 +1,8 @@
-import fs from 'fs';
-import child_process from 'child_process';
-import path from 'path';
-import ts from "typescript";
-import log from './tool/log';
+import * as fs from 'fs';
+import * as child_process from 'child_process';
+import * as path from 'path';
+import * as ts from "typescript";
+import log from './debug/log';
 
 class compile {
 	/* ***************private*************** */

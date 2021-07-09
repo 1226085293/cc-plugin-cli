@@ -1,7 +1,11 @@
+import chalk from "chalk";
+
 class log {
     /* ***************private*************** */
     /**参数列表 */
     private _args_as: any[] = [];
+    /**chalk示例 */
+    private _chalk = new chalk.Instance({ "level": 1 });
     /* ***************功能函数*************** */
     /**log */
     public l(...args_as_: any[]): boolean {
@@ -36,14 +40,7 @@ class log {
         }
         // 打印当前日志
         if (args_as_ && args_as_.length) {
-            if (args_as_.length > 1) {
-                let args_ss = [...args_as_];
-                let head_s = args_ss.shift();
-                let tail_s = args_ss.pop();
-                // console.log("\033[33m" + head_s, ...args_ss, tail_s + "\033[39m");
-            } else {
-                // console.log("\033[33m" + args_as_[0] + "\033[39m");
-            }
+            console.log(this._chalk.yellow(...args_as_));
             return true;
         }
         return false;
@@ -62,14 +59,7 @@ class log {
         }
         // 打印当前日志
         if (args_as_ && args_as_.length) {
-            if (args_as_.length > 1) {
-                let args_ss = [...args_as_];
-                let head_s = args_ss.shift();
-                let tail_s = args_ss.pop();
-                // console.log("\033[31m" + head_s, ...args_ss, tail_s + "\033[39m");
-            } else {
-                // console.log("\033[31m" + args_as_[0] + "\033[39m");
-            }
+            console.log(this._chalk.red(...args_as_));
             return true;
         }
         return false;
