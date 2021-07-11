@@ -1,5 +1,5 @@
 {
-  "name": "@muzzik/plugin-cli",
+  "name": "@muzzik/cc-plugin-cli",
   "version": "1.0.0",
   "description": "cocos creator插件编译包",
   "main": "dist/index.js",
@@ -14,11 +14,10 @@
   "author": "_muzzik",
   "license": "ISC",
   "bin": {
-    "plugin-cli": "dist/bin/plugin_cli"
+    "cc-plugin-cli": "dist/bin/cc_plugin_cli"
   },
   "devDependencies": {
     "@types/node": "^16.0.0",
-    "chalk": "^4.1.1",
     "typescript": "^4.3.5"
   },
   "dependencies": {}

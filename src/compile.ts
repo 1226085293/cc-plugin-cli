@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as path from 'path';
-import * as ts from "typescript";
-import log from './debug/log';
+import ts from "typescript";
+import log from './log';
 
 class compile {
 	/* ***************private*************** */
@@ -59,9 +59,9 @@ class compile {
 			}
 		})
 
-		let exitCode = emitResult.emitSkipped ? 1 : 0;
-		console.log(`Process exiting with code ${exitCode}.`);
-		process.exit(exitCode)
+		// let exitCode = emitResult.emitSkipped ? 1 : 0;
+		// console.log(`Process exiting with code ${exitCode}.`);
+		// process.exit(exitCode)
 	}
 	// 编译单包
     public single(path_s_: string): void {
@@ -79,10 +79,11 @@ class compile {
 			if (!fs.existsSync(ts_config_path_s)) {
 				log.push("未找到tsconfig.json");
 			}
-			if (log.e()) {
+			if (log.error()) {
 				return;
 			}
 		}
+		log.time_start("compile");
 		/**package.json */
 		let package_config: any;
 		/**tsconfig.json */
@@ -93,11 +94,12 @@ class compile {
 			let temp2 = ts.readConfigFile(ts_config_path_s, ts.sys.readFile);
 			log.push(temp1.error);
 			log.push(temp2.error);
-			if (log.e()) {
+			if (log.error()) {
 				return;
 			}
 			package_config = temp1.config;
 			ts_config = temp2.config;
+			log.time_log("compile", "读取配置文件");
 		}
 		// 解析配置文件
 		let ts_config_parse: ts.ParsedCommandLine;
@@ -106,11 +108,14 @@ class compile {
 			if (ts_config_parse.errors && ts_config_parse.errors.length) {
 				throw ts_config_parse.errors;
 			}
+			log.time_log("compile", "解析配置文件");
 		}
 		// 获取包含文件
 		let include_file_ss = this._get_include_file(ts_config_parse);
 		// 编译
         this._complier(include_file_ss, ts_config_parse.options);
+		log.time_log("compile", "编译");
+		log.time_end("compile");
     }
 }
 
