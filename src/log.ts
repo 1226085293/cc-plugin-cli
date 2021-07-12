@@ -8,8 +8,8 @@ module _log {
         warn = 0x04,
         error = 0x08,
     }
-    /**打印字体颜色 */
-    export enum font_color {
+    /**打印等级颜色 */
+    export enum level_color {
         debug = "",
         info = "",
         warn = "\x1B[33m",
@@ -90,7 +90,7 @@ class log {
             content_s += content_s ? ` ${v1_s}` : v1_s;
         });
         //@ts-ignore
-        return `${_log.font_color[level_head_s]}${content_s}\x1B[39m`;
+        return `${_log.level_color[level_head_s]}${content_s}\x1B[39m`;
     }
     /**日志 */
     private _log(level_n: _log.level_value, ...args_as_: any[]): boolean {
@@ -180,7 +180,7 @@ class log {
     }
     /**动画 */
     public async anim(cb_f_: (index_n: number)=> string, speed_ms_n_ = 100): Promise<void> {
-        return new Promise(resolve_f=> {
+        return new Promise(v1_f=> {
             /**执行下标 */
             let index_n = 0;
             /**当前内容 */
@@ -190,7 +190,7 @@ class log {
                 if (!(content_s = cb_f_(index_n))) {
                     process.stdout.write("\r");
                     clearInterval(print_timer);
-                    resolve_f();
+                    v1_f();
                     return;
                 }
                 if (index_n) {

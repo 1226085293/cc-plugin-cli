@@ -113,8 +113,16 @@ class compile {
 		// 获取包含文件
 		let include_file_ss = this._get_include_file(ts_config_parse);
 		// 编译
-        this._complier(include_file_ss, ts_config_parse.options);
-		log.time_log("compile", "编译");
+		{
+			let log_anim_b = true;
+			log.anim((index_n)=> {
+				return log_anim_b ? ["-", "\\", "|", "/"][index_n % 4] + "正在编译" : "";
+			});
+			let process1 = child_process.fork("", {});
+			this._complier(include_file_ss, ts_config_parse.options);
+			log_anim_b = false;
+			// log.time_log("compile", "编译");
+		}
 		log.time_end("compile");
     }
 }
