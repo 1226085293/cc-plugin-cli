@@ -34,10 +34,8 @@ import * as child_process from 'child_process';
 //     cc_plugin_cli.custom_process.instance().log_anim.send(new cc_plugin_cli.custom_process.event({ "common_id": cc_plugin_cli.custom_process.event_type.exit }));
 // });
 
-cc_plugin_cli.custom_process.instance().process_start_task
-.then(async ()=> {
+(async ()=> {
+    await cc_plugin_cli.custom_process.instance().process_start_task;
     await cc_plugin_cli.compile.single("../../../../NewProject_5/packages_dev/mk_framework");
-})
-.then(()=> {
     cc_plugin_cli.custom_process.instance().log_anim.send(new cc_plugin_cli.custom_process.event({ "common_id": cc_plugin_cli.custom_process.event_type.exit }));
-});
+})();

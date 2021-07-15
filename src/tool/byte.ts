@@ -32,4 +32,4 @@ class byte {
     }
 }
 
-export default byte;
+export default new byte;

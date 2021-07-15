@@ -117,7 +117,8 @@ class log {
             }
             // 打印内容
             content_ss.push(...args_as_);
-            process.stdout.write("\r");
+            process.stdout.write("\r\r");
+            process.stdout.clearLine(0);
             console.log(...content_ss);
             return true;
         }
@@ -210,7 +211,7 @@ class log {
         // 获取参数
         {
             let match_result = func_s.match(/(?<=\()[^\)]*/);
-            if (match_result && match_result.length) {
+            if (match_result) {
                 args_ss.push(...match_result[0].split(",").map(v1_s=> v1_s.replace(/ /g, "")));
             }
         }
@@ -218,7 +219,7 @@ class log {
         let body_s: string;
         {
             let match_result = func_s.match(/(?<=\{)([^]*)(?=\})/);
-            if (match_result && match_result.length) {
+            if (match_result) {
                 body_s = match_result[0];
             }
         }
