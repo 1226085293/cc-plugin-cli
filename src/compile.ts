@@ -124,7 +124,20 @@ class compile {
 			let include_file_ss = this._get_include_file(ts_config_parse);
 			// 添加依赖npm包
 			{
-				
+				let stdout_s: string = child_process.execSync("npm ls --parseable", {
+					"cwd": path_s_,
+				}).toString();
+				let include_package_ss = stdout_s.split("\n");
+				include_package_ss.shift();
+				// 保留node_modules下目录
+				{
+					let temp1_s = `node_modules${path.sep}`;
+					include_package_ss = include_package_ss.map(v1_s=> v1_s.slice(0, v1_s.indexOf(path.sep, v1_s.indexOf(temp1_s) + temp1_s.length)));
+				}
+				// 去重
+				include_package_ss = [...new Set(include_package_ss)];
+				// 加入编译文件
+				include_file_ss.push(...include_package_ss);
 			}
 			await log.anim("旋转跳跃", ["正在编译"], ()=> {
 				this._complier(include_file_ss, ts_config_parse.options);
