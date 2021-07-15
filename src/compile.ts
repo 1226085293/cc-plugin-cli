@@ -4,7 +4,7 @@ import * as path from 'path';
 import ts from "typescript";
 import log from './log';
 import custom_process from "./custom_process";
-import log_anim from './custom_process/log_anim';
+import tool from './tool';
 
 class compile {
 	constructor() {
@@ -50,29 +50,24 @@ class compile {
 		return include_file_ss;
 	}
 	/**编译项目 */
-	private _complier (fileNames: string[], options: ts.CompilerOptions): void {
-		let program = ts.createProgram(fileNames, options)
-		let emitResult = program.emit()
-
-		let allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics)
-
-		allDiagnostics.forEach(diagnostics => {
+	private _complier(file_ss_: string[], option_: ts.CompilerOptions): boolean {
+		let program = ts.createProgram(file_ss_, option_);
+		let emit_result = program.emit();
+		/**诊断信息 */
+		let all_diagnostics = ts.getPreEmitDiagnostics(program).concat(emit_result.diagnostics);
+		all_diagnostics.forEach(diagnostics => {
 			if (diagnostics.file) {
-			let { line, character } = diagnostics.file.getLineAndCharacterOfPosition(diagnostics.start!)
-			let message = ts.flattenDiagnosticMessageText(diagnostics.messageText, '\n');
-			console.log(`${diagnostics.file.fileName} (${line + 1}, ${character + 1}): ${message}`);
+				let { line, character } = diagnostics.file.getLineAndCharacterOfPosition(diagnostics.start!)
+				let message = ts.flattenDiagnosticMessageText(diagnostics.messageText, '\n');
+				log.w(`${diagnostics.file.fileName} (${line + 1}, ${character + 1}): ${message}`);
 			} else {
-			console.log(ts.flattenDiagnosticMessageText(diagnostics.messageText, '\n'))
+				log.w(ts.flattenDiagnosticMessageText(diagnostics.messageText, '\n'))
 			}
-		})
-
-		// let exitCode = emitResult.emitSkipped ? 1 : 0;
-		// console.log(`Process exiting with code ${exitCode}.`);
-		// process.exit(exitCode)
+		});
+		return !emit_result.emitSkipped;
 	}
 	// 编译单包
     public async single(path_s_: string): Promise<void> {
-		await custom_process.instance().process_start_task;
         // 路径转换
 		path_s_ = path.resolve(path_s_);
 		/**package.json路径 */
@@ -95,7 +90,9 @@ class compile {
 		/**package.json */
 		let package_config: any;
 		/**tsconfig.json */
-		let ts_config: ts.CompilerOptions;
+		let ts_config: { compilerOptions: ts.CompilerOptions };
+		/**tsconfig解析 */
+		let ts_config_parse: ts.ParsedCommandLine;
 		// 读取配置文件
 		{
 			let temp1 = ts.readConfigFile(package_config_path_s, ts.sys.readFile);
@@ -107,21 +104,28 @@ class compile {
 			}
 			package_config = temp1.config;
 			ts_config = temp2.config;
+			// 解析配置文件
+			{
+				ts_config_parse = ts.parseJsonConfigFileContent(ts_config, ts.sys, path.dirname(ts_config_path_s));
+				if (ts_config_parse.errors && ts_config_parse.errors.length) {
+					throw ts_config_parse.errors;
+				}
+			}
 			log.time_log("compile", "读取配置文件");
 		}
-		// 解析配置文件
-		let ts_config_parse: ts.ParsedCommandLine;
+		// 清理输出目录
 		{
-			ts_config_parse = ts.parseJsonConfigFileContent(ts_config, ts.sys, path.dirname(ts_config_path_s));
-			if (ts_config_parse.errors && ts_config_parse.errors.length) {
-				throw ts_config_parse.errors;
-			}
-			log.time_log("compile", "解析配置文件");
+			tool.file.del(ts_config_parse.options.outDir);
+			log.time_log("compile", "清理输出目录");
 		}
-		// 获取包含文件
-		let include_file_ss = this._get_include_file(ts_config_parse);
 		// 编译
 		{
+			/**包含文件 */
+			let include_file_ss = this._get_include_file(ts_config_parse);
+			// 添加依赖npm包
+			{
+				
+			}
 			await log.anim("旋转跳跃", ["正在编译"], ()=> {
 				this._complier(include_file_ss, ts_config_parse.options);
 			});

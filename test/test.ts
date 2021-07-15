@@ -1,7 +1,5 @@
 import * as cc_plugin_cli from "../index";
 import * as child_process from 'child_process';
-let log = cc_plugin_cli.log;
-
 
 // console.log(`\x1B[30m111\x1B[39m`);
 // console.log(`\x1B[31m222\x1B[39m`);
@@ -35,6 +33,11 @@ let log = cc_plugin_cli.log;
 //     console.log(123);
 //     cc_plugin_cli.custom_process.instance().log_anim.send(new cc_plugin_cli.custom_process.event({ "common_id": cc_plugin_cli.custom_process.event_type.exit }));
 // });
-cc_plugin_cli.compile.single("../../../../NewProject_5/packages_dev/mk_framework").then(()=> {
+
+cc_plugin_cli.custom_process.instance().process_start_task
+.then(async ()=> {
+    await cc_plugin_cli.compile.single("../../../../NewProject_5/packages_dev/mk_framework");
+})
+.then(()=> {
     cc_plugin_cli.custom_process.instance().log_anim.send(new cc_plugin_cli.custom_process.event({ "common_id": cc_plugin_cli.custom_process.event_type.exit }));
 });

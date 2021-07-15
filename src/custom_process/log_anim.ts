@@ -18,7 +18,7 @@ module _log_anim {
     /*---------logic */
 }
 
-class log_anim {
+class log_anim_ {
     constructor() {
         // 消息监听
         process.on("message", (mess_: custom_process.event)=> {
@@ -29,7 +29,7 @@ class log_anim {
                 } break;
             }
             switch (mess_.child_id) {
-                case log_anim.event_type.log: {
+                case log_anim_.event_type.log: {
                     this.log_task[mess_.index_n] = {
                         "over_b": false,
                         "cb_f": new Function(...mess_.args_as[0])
@@ -44,7 +44,7 @@ class log_anim {
                             clearInterval(print_timer);
                             // 通知停止
                             process.send(new custom_process.event({
-                                "child_id": log_anim.event_type.stop,
+                                "child_id": log_anim_.event_type.stop,
                             }));
                             return;
                         }
@@ -55,7 +55,7 @@ class log_anim {
                         ++index_n;
                     }, 100);
                 } break;
-                case log_anim.event_type.stop: {
+                case log_anim_.event_type.stop: {
                     this.log_task[mess_.args_as[0]].over_b = true;
                 } break;
             }
@@ -68,7 +68,7 @@ class log_anim {
     public log_task: { [k: number]: _log_anim.log_task } = Object.create(null);
 }
 
-module log_anim {
+module log_anim_ {
     /*---------enum_private */
     /*---------enum_public */
     export enum event_type {
@@ -84,9 +84,9 @@ module log_anim {
     /*---------logic */
     process.once("message", (mess: any)=> {
         if (mess === "instance") {
-            new log_anim;
+            new log_anim_;
         }
     });
 }
 
-export default log_anim;
+export default log_anim_;

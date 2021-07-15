@@ -1,5 +1,5 @@
 import custom_process from "./custom_process";
-import log_anim from "./custom_process/log_anim";
+import log_anim_ from "./custom_process/log_anim";
 
 module _log {
     /*---------enum_private */
@@ -60,12 +60,6 @@ class log {
     /**动画函数 */
     private _anim_map: Map<string | number, string[]> = new Map;
     /* ***************public*************** */
-    /**打印等级 */
-    public static level_n: number = _log.level.debug;
-    /**展示时间 */
-    public static show_time_b ?= true;
-    /**展示名 */
-    public static show_name_b ?= true;
     /* ***************功能函数*************** */
     /**获取打印头 */
     private _log_head(level_n_: _log.level_value) {
@@ -77,13 +71,13 @@ class log {
         /**等级头 */
         let level_head_s = _log.level_value[level_n_];
         // 打印时间
-        if (log.show_time_b) {
+        if (log_.show_time_b) {
             content_ss.push(`[${time_s}]`);
         } 
         // 打印等级头
         content_ss.push(`<${level_head_s}>`);
         // 打印名
-        if (log.show_name_b) {
+        if (log_.show_name_b) {
             content_ss.push(`${this._name_s}:`);
         }
         if (!content_ss.length) {
@@ -100,7 +94,7 @@ class log {
     /**日志 */
     private _log(level_n: _log.level_value, ...args_as_: any[]): boolean {
         // 安检
-        if (!(log.level_n & level_n)) {
+        if (!(log_.level_n & level_n)) {
             return false;
         }
         // 打印日志列表
@@ -192,18 +186,18 @@ class log {
             return;
         }
         let log_process = new custom_process.event({
-            "child_id": log_anim.event_type.log,
+            "child_id": log_anim_.event_type.log,
             "args_as": [func_ss, args_as_]
         });
         custom_process.instance().log_anim.send(log_process);
         await cb_f_();
         custom_process.instance().log_anim.send(new custom_process.event({
-            "child_id": log_anim.event_type.stop,
+            "child_id": log_anim_.event_type.stop,
             "args_as": [log_process.index_n]
         }));
         return new Promise<void>(v1=> {
             custom_process.instance().log_anim.once("message", (mess: custom_process.event)=> {
-                if (mess.child_id === log_anim.event_type.stop) {
+                if (mess.child_id === log_anim_.event_type.stop) {
                     v1();
                 }
             });
@@ -274,20 +268,29 @@ class log {
     }
 }
 
-module log {
+module log_ {
     /*---------enum_private */
     /*---------enum_public */
-    /*---------var_private */
-    /*---------var_public */
     /**打印等级代表值 */
     export const level_value = _log.level_value;
     /**打印等级 */
     export const level = _log.level;
+    /*---------var_private */
+    /*---------var_public */
+    /**打印等级 */
+    export let level_n: number = _log.level.debug;
+    /**展示时间 */
+    export let show_time_b = true;
+    /**展示名 */
+    export let show_name_b = true;
     /*---------class_private */
     /*---------class_public */
+    /**导出类型 */
+    export const type = log;
+    export type type = log;
     /*---------function_private */
     /*---------function_public */
     /*---------logic */
 }
 
-export default Object.assign(new log("default"), log);
+export default Object.assign(new log("default"), log_);
