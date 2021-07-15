@@ -9,6 +9,20 @@
 			],
 			"group": "build",
 			"label": "tsc: 构建 - tsconfig.json"
+		},
+		{
+			"type": "npm",
+			"script": "清理输出目录",
+			"problemMatcher": [],
+			"label": "npm: 清理输出目录",
+			"detail": "rd /s/q dist"
+		},
+		{
+			"label": "Build",
+			"dependsOn": [
+				"npm: 清理输出目录",
+				"tsc: 构建 - tsconfig.json"
+			]
 		}
 	]
 }

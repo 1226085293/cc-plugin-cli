@@ -3,8 +3,15 @@ import * as child_process from 'child_process';
 import * as path from 'path';
 import ts from "typescript";
 import log from './log';
+import custom_process from "./custom_process";
+import log_anim from './custom_process/log_anim';
 
 class compile {
+	constructor() {
+		log.register_anim("旋转跳跃", (index_n: number, desc_s: string)=> {
+			return ["▁", "▂", "▃", "▅", "▆", "▇"][index_n % 6] + "  " + desc_s;
+		});
+	}
 	/* ***************private*************** */
     /**项目路径 */
     private project_path_s = path.resolve(__dirname.slice(0, __dirname.indexOf("node_modules")));
@@ -64,7 +71,8 @@ class compile {
 		// process.exit(exitCode)
 	}
 	// 编译单包
-    public single(path_s_: string): void {
+    public async single(path_s_: string): Promise<void> {
+		await custom_process.instance().process_start_task;
         // 路径转换
 		path_s_ = path.resolve(path_s_);
 		/**package.json路径 */
@@ -114,14 +122,10 @@ class compile {
 		let include_file_ss = this._get_include_file(ts_config_parse);
 		// 编译
 		{
-			let log_anim_b = true;
-			log.anim((index_n)=> {
-				return log_anim_b ? ["-", "\\", "|", "/"][index_n % 4] + "正在编译" : "";
+			await log.anim("旋转跳跃", ["正在编译"], ()=> {
+				this._complier(include_file_ss, ts_config_parse.options);
 			});
-			let process1 = child_process.fork("", {});
-			this._complier(include_file_ss, ts_config_parse.options);
-			log_anim_b = false;
-			// log.time_log("compile", "编译");
+			log.time_log("compile", "编译");
 		}
 		log.time_end("compile");
     }

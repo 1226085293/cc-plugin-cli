@@ -1,3 +1,6 @@
+import custom_process from "./custom_process";
+import log_anim from "./custom_process/log_anim";
+
 module _log {
     /*---------enum_private */
     /*---------enum_public */
@@ -10,8 +13,8 @@ module _log {
     }
     /**打印等级颜色 */
     export enum level_color {
-        debug = "",
-        info = "",
+        debug = "\x1B[36m",
+        info = "\x1B[32m",
         warn = "\x1B[33m",
         error = "\x1B[31m",
     }
@@ -52,8 +55,10 @@ class log {
     private _args_as: any[] = [];
     /**打印名 */
     private _name_s: string;
-    /**计时map */
+    /**计时信息 */
     private _time_map: Map<string, _log.time_log> = new Map;
+    /**动画函数 */
+    private _anim_map: Map<string | number, string[]> = new Map;
     /* ***************public*************** */
     /**打印等级 */
     public static level_n: number = _log.level.debug;
@@ -118,6 +123,7 @@ class log {
             }
             // 打印内容
             content_ss.push(...args_as_);
+            process.stdout.write("\r");
             console.log(...content_ss);
             return true;
         }
@@ -178,28 +184,59 @@ class log {
     public push(v_: any): log {
         return this._push(v_);
     }
-    /**动画 */
-    public async anim(cb_f_: (index_n: number)=> string, speed_ms_n_ = 100): Promise<void> {
-        return new Promise(v1_f=> {
-            /**执行下标 */
-            let index_n = 0;
-            /**当前内容 */
-            let content_s: string;
-            /**打印定时器 */
-            let print_timer = setInterval(()=> {
-                if (!(content_s = cb_f_(index_n))) {
-                    process.stdout.write("\r");
-                    clearInterval(print_timer);
-                    v1_f();
-                    return;
-                }
-                if (index_n) {
-                    process.stdout.write("\r");
-                }
-                process.stdout.write(content_s);
-                ++index_n;
-            }, speed_ms_n_);
+    /**打印动画 */
+    public async anim(key_: string | number, args_as_: any[], cb_f_: Function): Promise<void> {
+        let func_ss = this._anim_map.get(key_);
+        if (!func_ss) {
+            this.e(`不存在 ${key_} 的动画函数`);
+            return;
+        }
+        let log_process = new custom_process.event({
+            "child_id": log_anim.event_type.log,
+            "args_as": [func_ss, args_as_]
         });
+        custom_process.instance().log_anim.send(log_process);
+        await cb_f_();
+        custom_process.instance().log_anim.send(new custom_process.event({
+            "child_id": log_anim.event_type.stop,
+            "args_as": [log_process.index_n]
+        }));
+        return new Promise<void>(v1=> {
+            custom_process.instance().log_anim.once("message", (mess: custom_process.event)=> {
+                if (mess.child_id === log_anim.event_type.stop) {
+                    v1();
+                }
+            });
+        });
+    }
+    /**注册动画回调 */
+    public register_anim(key_: string | number, cb_f_: Function): boolean {
+        let func_s = cb_f_.toString();
+        let args_ss: string[] = [];
+        // 获取参数
+        {
+            let match_result = func_s.match(/(?<=\()[^\)]*/);
+            if (match_result && match_result.length) {
+                args_ss.push(...match_result[0].split(",").map(v1_s=> v1_s.replace(/ /g, "")));
+            }
+        }
+        // 获取函数体
+        let body_s: string;
+        {
+            let match_result = func_s.match(/(?<=\{)([^]*)(?=\})/);
+            if (match_result && match_result.length) {
+                body_s = match_result[0];
+            }
+        }
+        try {
+            args_ss.push(body_s);
+            new Function(...args_ss);
+        } catch (e) {
+            this.e("注册动画函数错误，请检查函数体");
+            return false;
+        }
+        this._anim_map.set(key_, args_ss);
+        return true;
     }
     /**调用跟踪 */
     public trace = console.trace;

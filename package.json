@@ -4,6 +4,7 @@
   "description": "cocos creator插件编译包",
   "main": "dist/index.js",
   "scripts": {
+    "清理输出目录": "rd /s/q dist",
     "测试": "node dist/test/test"
   },
   "keywords": [
