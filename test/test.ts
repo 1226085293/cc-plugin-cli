@@ -1,5 +1,4 @@
 import * as cc_plugin_cli from "../index";
-import * as child_process from 'child_process';
 
 // console.log(`\x1B[30m111\x1B[39m`);
 // console.log(`\x1B[31m222\x1B[39m`);
@@ -35,7 +34,12 @@ import * as child_process from 'child_process';
 // });
 
 (async ()=> {
-    await cc_plugin_cli.custom_process.instance().process_start_task;
-    await cc_plugin_cli.compile.single("../../../../NewProject_5/packages_dev/mk_framework");
-    cc_plugin_cli.custom_process.instance().log_anim.send(new cc_plugin_cli.custom_process.event({ "common_id": cc_plugin_cli.custom_process.event_type.exit }));
+    try {
+        await cc_plugin_cli.custom_process.instance().process_start_task;
+        await cc_plugin_cli.compile.single("../../../../NewProject_5/packages_dev/mk_framework");
+        // await cc_plugin_cli.compile.single("../../../../NewProject_6/extensions_dev/mk_framework");
+        cc_plugin_cli.custom_process.instance().log_anim.send(new cc_plugin_cli.custom_process.event({ "common_id": cc_plugin_cli.custom_process.event_type.exit }));
+    } catch (e) {
+        cc_plugin_cli.custom_process.instance().log_anim.send(new cc_plugin_cli.custom_process.event({ "common_id": cc_plugin_cli.custom_process.event_type.exit }));
+    }
 })();

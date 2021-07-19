@@ -6,8 +6,8 @@ class custom_process extends instance_base {
     constructor() {
         super();
         // 初始化
-        {
-            this.log_anim = child_process.fork("dist/src/custom_process/log_anim");
+        if (this.main_b) {
+            this.log_anim = child_process.fork("dist/src/custom_process/log_anim", [ process.pid + "" ]);
             this.process_start_task = new Promise<void>(v1_f=> {
                 let process_as = [this.log_anim];
                 let process_start_n = 0;
@@ -17,7 +17,7 @@ class custom_process extends instance_base {
                         switch (mess.common_id) {
                             case custom_process.event_type.init: {
                                 if (++process_start_n === process_as.length) {
-                                    log.i("初始化子进程完成");
+                                    log.instance().i("初始化子进程完成");
                                     v1_f();
                                 }
                             } break;
@@ -29,6 +29,8 @@ class custom_process extends instance_base {
     }
     /**进程初始化任务 */
     public process_start_task: Promise<void>;
+    /**主进程 */
+    public main_b = process.argv.length <= 2 || Number(process.argv[2]) !== process.ppid;
     public log_anim: child_process.ChildProcess;
 }
 
