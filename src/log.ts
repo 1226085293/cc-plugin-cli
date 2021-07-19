@@ -107,7 +107,7 @@ class log extends instance_base {
             while (args_as.length) {
                 this._log(level_n, args_as.shift());
             }
-            if (!args_as_) {
+            if (!args_as_ || !args_as_.length) {
                 return true;
             }
         }
