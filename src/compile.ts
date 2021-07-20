@@ -229,6 +229,8 @@ class compile extends instance_base {
 		let output_dir_name_s = path.basename(output_dir_s_);
 		/**package.json */
 		let package_config_s = fs.readFileSync(path.resolve(output_dir_s_, "package.json"), "utf8");
+		/**面板入口路径 */
+		let panel_main_dir_s = this.task_info.package_config.panel.main;
 		// 更新入口脚本路径
 		{
 			/**修改状态 */
@@ -249,9 +251,9 @@ class compile extends instance_base {
 				this.task_info.package_config.main = main_s;
 				modify_b = true;
 			}
-			let panel_main_s = path.resolve(output_dir_s_, this.task_info.package_config.panel.main);
+			let panel_main_s = path.resolve(output_dir_s_, panel_main_dir_s);
 			if (!fs.existsSync(panel_main_s)) {
-				let reg = new RegExp(`${path.normalize(this.task_info.package_config.panel.main).replace(/\\/g, "\\\\").replace(/\./g, "\\.")}$`);
+				let reg = new RegExp(`${path.normalize(panel_main_dir_s).replace(/\\/g, "\\\\").replace(/\./g, "\\.")}$`);
 				panel_main_s = tool.file.search(
 					output_dir_s_,
 					reg,
@@ -261,8 +263,8 @@ class compile extends instance_base {
 					}
 				)[0];
 				let wirter_s = panel_main_s.replace(output_dir_s_ + path.sep, "").replace(/\\/g, `/`);
-				package_config_s = package_config_s.replace(this.task_info.package_config.panel.main, wirter_s);
-				this.task_info.package_config.panel.main = panel_main_s;
+				package_config_s = package_config_s.replace(panel_main_dir_s, wirter_s);
+				this.task_info.package_config.panel.main = panel_main_dir_s = panel_main_s;
 				modify_b = true;
 			}
 			if (modify_b) {
@@ -274,7 +276,13 @@ class compile extends instance_base {
 			/**包目录 */
 			let package_dir_s = path.join("${Editor.Project.path}", "packages", output_dir_name_s);
 			/**面板入口脚本 */
-			let panel_main_s = fs.readFileSync(this.task_info.package_config.panel.main, "utf8");
+			let panel_main_s = fs.readFileSync(panel_main_dir_s, "utf8");
+			/**面板入口脚本所在目录 */
+			let panel_dir_s: string;
+			{
+				let temp1_s = panel_main_dir_s.slice(panel_main_dir_s.indexOf("packages") + "packages".length, panel_main_dir_s.length);
+				panel_dir_s = (path.join("${Editor.Project.path}", "packages", path.dirname(temp1_s)) + path.sep).replace(/\\/g, "/");;
+			}
 			panel_main_s = panel_main_s.replace("Object.defineProperty(exports", "Object.defineProperty(module.exports");
 			/**node_modules路径 */
 			let node_module_dir_s = path.resolve(package_dir_s, "node_modules");
@@ -282,7 +290,7 @@ class compile extends instance_base {
 				let content_s = v_s.slice(1, v_s.length - 1);
 				// 局部模块
 				if (content_s.startsWith(".")) {
-					return `__dirname + ${v_s}`;
+					return `\`${panel_dir_s}${content_s}\``;
 				}
 				// 全局模块/npm模块
 				else if (fs.existsSync(path.resolve(node_module_dir_s, content_s))) {
@@ -290,8 +298,10 @@ class compile extends instance_base {
 				}
 				return v_s;
 			});
+			// 替换面板宏
+			panel_main_s = panel_main_s.replace(/\$panel\$/g, panel_dir_s);
 			// 更新脚本
-			fs.writeFileSync(this.task_info.package_config.panel.main, panel_main_s, "utf8");
+			fs.writeFileSync(panel_main_dir_s, panel_main_s, "utf8");
 		}
 	}
 	/**压缩 */
