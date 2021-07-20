@@ -2,27 +2,11 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "typescript",
-			"tsconfig": "tsconfig.json",
-			"problemMatcher": [
-				"$tsc"
-			],
-			"group": "build",
-			"label": "tsc: 构建 - tsconfig.json"
-		},
-		{
 			"type": "npm",
-			"script": "清理输出目录",
+			"script": "publish",
 			"problemMatcher": [],
-			"label": "npm: 清理输出目录",
-			"detail": "rd /s/q dist"
-		},
-		{
-			"label": "Build",
-			"dependsOn": [
-				"npm: 清理输出目录",
-				"tsc: 构建 - tsconfig.json"
-			]
+			"label": "npm: publish",
+			"detail": "rd /s/q dist & tsc & copy /Y .\\package.json .\\dist\\package.json & copy /Y .\\package-lock.json .\\dist\\package-lock.json"
 		}
 	]
 }

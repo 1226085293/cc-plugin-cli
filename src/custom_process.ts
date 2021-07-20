@@ -1,13 +1,14 @@
 import * as child_process from 'child_process';
 import instance_base from './instance_base';
 import log from './log';
+import path from 'path';
 
 class custom_process extends instance_base {
     constructor() {
         super();
         // 初始化
         if (this.main_b) {
-            this.log_anim = child_process.fork("dist/src/custom_process/log_anim", [ process.pid + "" ]);
+            this.log_anim = child_process.fork(path.resolve(__dirname, "./custom_process/log_anim"), [ process.pid + "" ]);
             this.process_start_task = new Promise<void>(v1_f=> {
                 let process_as = [this.log_anim];
                 let process_start_n = 0;

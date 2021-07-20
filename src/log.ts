@@ -161,19 +161,11 @@ class log extends instance_base {
     }
     /**错误 */
     public e(...args_as_: any[]): boolean {
-        let result_b = this._log(_log.level_value.error, ...args_as_);
-        if (result_b) {
-            this.trace();
-        }
-        return result_b;
+        return this._log(_log.level_value.error, ...args_as_);
     }
     /**错误 */
     public error(...args_as_: any[]): boolean {
-        let result_b = this._log(_log.level_value.error, ...args_as_);
-        if (result_b) {
-            this.trace();
-        }
-        return result_b;
+        return this._log(_log.level_value.error, ...args_as_);
     }
     /**加入打印队列，下次调用 log，warn，error 时一起打印，可用打印函数返回值判断打印队列是否为空 */
     public p(v_: any): log {

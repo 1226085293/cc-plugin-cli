@@ -37,7 +37,9 @@ import * as cc_plugin_cli from "../index";
     try {
         await cc_plugin_cli.custom_process.instance().process_start_task;
         await cc_plugin_cli.compile.single("../../../../NewProject_5/packages_dev/mk_framework");
+        cc_plugin_cli.compile.generate_zip("../../../../NewProject_5/packages/mk_framework", "../../../../NewProject_5/packages/mk_framework.zip");
         // await cc_plugin_cli.compile.single("../../../../NewProject_6/extensions_dev/mk_framework");
+        // cc_plugin_cli.compile.generate_zip("../../../../NewProject_6/extensions/mk_framework", "../../../../NewProject_6/extensions/mk_framework.zip");
         cc_plugin_cli.custom_process.instance().log_anim.send(new cc_plugin_cli.custom_process.event({ "common_id": cc_plugin_cli.custom_process.event_type.exit }));
     } catch (e) {
         cc_plugin_cli.custom_process.instance().log_anim.send(new cc_plugin_cli.custom_process.event({ "common_id": cc_plugin_cli.custom_process.event_type.exit }));

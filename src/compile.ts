@@ -1,6 +1,7 @@
-import * as fs from 'fs';
-import * as child_process from 'child_process';
-import * as path from 'path';
+import fs from 'fs';
+import child_process from 'child_process';
+import path from 'path';
+import archiver from "archiver";
 import ts from "typescript";
 import tool from './tool';
 import log from './log';
@@ -49,8 +50,9 @@ class compile extends instance_base {
 		}
 	}
 	/* ***************private*************** */
+	/* ***************public*************** */
 	/**当前任务信息 */
-	private _task_info: _compile.task_info;
+	public task_info: _compile.task_info;
 	/**项目路径 */
 	public project_path_s = path.normalize(__dirname.slice(0, __dirname.indexOf("node_modules")));
 	/**项目版本 */
@@ -169,7 +171,6 @@ class compile extends instance_base {
 		// 拷贝项目配置文件至包根目录
 		let config_file_ss = [
 			path.resolve(path_s_, "tsconfig.json"),
-			path.resolve(path_s_, "jsconfig.json"),
 			path.resolve(path_s_, "package.json"),
 			path.resolve(path_s_, "package-lock.json"),
 		];
@@ -217,13 +218,13 @@ class compile extends instance_base {
 				}
 			}
 		}
-		this._task_info = task_info;
+		this.task_info = task_info;
 		return true;
 	}
 	/**处理面板入口脚本 */
 	private _panel_entry_process(): void {
 		/**输出目录 */
-		let output_dir_s_ = path.normalize(this._task_info.tsconfig_parse.options.outDir);
+		let output_dir_s_ = path.normalize(this.task_info.tsconfig_parse.options.outDir);
 		/**输出目录名 */
 		let output_dir_name_s = path.basename(output_dir_s_);
 		/**package.json */
@@ -232,9 +233,9 @@ class compile extends instance_base {
 		{
 			/**修改状态 */
 			let modify_b = false;
-			let main_s = path.resolve(output_dir_s_, this._task_info.package_config.main);
+			let main_s = path.resolve(output_dir_s_, this.task_info.package_config.main);
 			if (!fs.existsSync(main_s)) {
-				let reg = new RegExp(`${path.normalize(this._task_info.package_config.main).replace(/\\/g, "\\\\").replace(/\./g, "\\.")}$`);
+				let reg = new RegExp(`${path.normalize(this.task_info.package_config.main).replace(/\\/g, "\\\\").replace(/\./g, "\\.")}$`);
 				main_s = tool.file.search(
 					output_dir_s_,
 					reg,
@@ -244,13 +245,13 @@ class compile extends instance_base {
 					}
 				)[0];
 				let wirter_s = main_s.replace(output_dir_s_ + path.sep, "").replace(/\\/g, `/`);
-				package_config_s = package_config_s.replace(this._task_info.package_config.main, wirter_s);
-				this._task_info.package_config.main = main_s;
+				package_config_s = package_config_s.replace(this.task_info.package_config.main, wirter_s);
+				this.task_info.package_config.main = main_s;
 				modify_b = true;
 			}
-			let panel_main_s = path.resolve(output_dir_s_, this._task_info.package_config.panel.main);
+			let panel_main_s = path.resolve(output_dir_s_, this.task_info.package_config.panel.main);
 			if (!fs.existsSync(panel_main_s)) {
-				let reg = new RegExp(`${path.normalize(this._task_info.package_config.panel.main).replace(/\\/g, "\\\\").replace(/\./g, "\\.")}$`);
+				let reg = new RegExp(`${path.normalize(this.task_info.package_config.panel.main).replace(/\\/g, "\\\\").replace(/\./g, "\\.")}$`);
 				panel_main_s = tool.file.search(
 					output_dir_s_,
 					reg,
@@ -260,8 +261,8 @@ class compile extends instance_base {
 					}
 				)[0];
 				let wirter_s = panel_main_s.replace(output_dir_s_ + path.sep, "").replace(/\\/g, `/`);
-				package_config_s = package_config_s.replace(this._task_info.package_config.panel.main, wirter_s);
-				this._task_info.package_config.panel.main = panel_main_s;
+				package_config_s = package_config_s.replace(this.task_info.package_config.panel.main, wirter_s);
+				this.task_info.package_config.panel.main = panel_main_s;
 				modify_b = true;
 			}
 			if (modify_b) {
@@ -272,14 +273,8 @@ class compile extends instance_base {
 		{
 			/**包目录 */
 			let package_dir_s = path.join("${Editor.Project.path}", "packages", output_dir_name_s);
-			/**面板入口脚本所在目录 */
-			let panel_dir_s: string;
-			{
-				let temp1_s = this._task_info.package_config.panel.main.slice(this._task_info.package_config.panel.main.indexOf("packages") + "packages".length, this._task_info.package_config.panel.main.length);
-				panel_dir_s = (path.join("${Editor.Project.path}", "packages", path.dirname(temp1_s)) + path.sep).replace(/\\/g, "/");;
-			}
 			/**面板入口脚本 */
-			let panel_main_s = fs.readFileSync(this._task_info.package_config.panel.main, "utf8");
+			let panel_main_s = fs.readFileSync(this.task_info.package_config.panel.main, "utf8");
 			panel_main_s = panel_main_s.replace("Object.defineProperty(exports", "Object.defineProperty(module.exports");
 			/**node_modules路径 */
 			let node_module_dir_s = path.resolve(package_dir_s, "node_modules");
@@ -296,8 +291,26 @@ class compile extends instance_base {
 				return v_s;
 			});
 			// 更新脚本
-			fs.writeFileSync(this._task_info.package_config.panel.main, panel_main_s, "utf8");
+			fs.writeFileSync(this.task_info.package_config.panel.main, panel_main_s, "utf8");
 		}
+	}
+	/**压缩 */
+	public generate_zip(src_path_s_: string, output_path_s_: string): void {
+		log.instance().time_start("zip");
+		src_path_s_ = path.resolve(src_path_s_);
+		output_path_s_ = path.resolve(output_path_s_);
+		if (!fs.existsSync(src_path_s_)) {
+			log.instance().e("压缩路径不存在");
+			return;
+		}
+		let archiver_zip = archiver("zip");
+		archiver_zip.pipe(fs.createWriteStream(output_path_s_));
+		archiver_zip.on('error', (error)=> {
+			throw error;
+		});
+		archiver_zip.directory(src_path_s_, false);
+		archiver_zip.finalize();
+		log.instance().time_end("zip");
 	}
 	// 编译单包
     public async single(path_s_: string): Promise<void> {
@@ -312,9 +325,9 @@ class compile extends instance_base {
 			log.instance().time_log("compile", "更新任务信息");
 		}
 		/**tsconfig解析 */
-		let tsconfig_parse = this._task_info.tsconfig_parse;
+		let tsconfig_parse = this.task_info.tsconfig_parse;
 		/**输出目录 */
-		let output_dir_s_ = path.normalize(this._task_info.tsconfig_parse.options.outDir);
+		let output_dir_s_ = path.normalize(this.task_info.tsconfig_parse.options.outDir);
 		/**包源目录 */
 		let package_src_dir_s = path.basename(path_s_);
 		// 清理输出目录

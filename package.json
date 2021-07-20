@@ -2,10 +2,10 @@
   "name": "@muzzik/cc-plugin-cli",
   "version": "1.0.0",
   "description": "cocos creator插件编译包",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
-    "清理输出目录": "rd /s/q dist",
-    "测试": "node dist/test/test"
+    "测试": "node test/test",
+    "publish": "rd /s/q dist & tsc & copy /Y .\\package.json .\\dist\\package.json & copy /Y .\\package-lock.json .\\dist\\package-lock.json"
   },
   "keywords": [
     "cocos",
@@ -15,11 +15,15 @@
   "author": "_muzzik",
   "license": "ISC",
   "bin": {
-    "cc-plugin-cli": "dist/bin/cc_plugin_cli"
+    "cc_plugin_cli": "bin/cc_plugin_cli.js"
   },
   "devDependencies": {
+    "@types/archiver": "^5.1.1",
     "@types/node": "^16.0.0",
     "typescript": "^4.3.5"
   },
-  "dependencies": {}
+  "dependencies": {
+    "archiver": "^5.3.0",
+    "commander": "^8.0.0"
+  }
 }
