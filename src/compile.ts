@@ -1,24 +1,24 @@
-import fs from 'fs';
-import child_process from 'child_process';
-import path from 'path';
+import fs from "fs";
+import child_process from "child_process";
+import path from "path";
 import archiver from "archiver";
 import ts from "typescript";
-import tool from './tool';
-import log from './log';
-import instance_base from './instance_base';
+import tool from "./tool";
+import log from "./log";
+import instance_base from "./instance_base";
 
 module _compile {
-    /*---------enum_private */
-    /*---------enum_public */
-    /*---------var_private */
-    /*---------var_public */
-    /*---------class_private */
+	/*---------enum_private */
+	/*---------enum_public */
+	/*---------var_private */
+	/*---------var_public */
+	/*---------class_private */
 	class tsconfig {
 		include?: string[];
 		exclude?: string[];
 		compilerOptions: ts.CompilerOptions;
 	}
-    /*---------class_public */
+	/*---------class_public */
 	export class task_info {
 		constructor(init_?: task_info) {
 			Object.assign(this, init_);
@@ -31,32 +31,27 @@ module _compile {
 		public tsconfig: tsconfig;
 		/**tsconfig解析 */
 		public tsconfig_parse: ts.ParsedCommandLine;
+		/**项目路径 */
+		public project_path_s: string;
+		/**项目版本 */
+		public project_version_s: string;
 	}
-    /*---------function_private */
-    /*---------function_public */
-    /*---------logic */
+	/*---------function_private */
+	/*---------function_public */
+	/*---------logic */
 }
 
 class compile extends instance_base {
 	constructor() {
 		super();
-		log.instance().register_anim("旋转跳跃", (index_n: number, desc_s: string)=> {
+		log.instance().register_anim("旋转跳跃", (index_n: number, desc_s: string) => {
 			return ["▁", "▂", "▃", "▅", "▆", "▇"][index_n % 6] + "  " + desc_s;
 		});
-		if (fs.existsSync(path.resolve(this.project_path_s, "project.json"))) {
-			this.project_version_s = JSON.parse(fs.readFileSync(path.resolve(this.project_path_s, "project.json"), "utf8")).version;
-		} else if (fs.existsSync(path.resolve(this.project_path_s, "package.json"))) {
-			this.project_version_s = JSON.parse(fs.readFileSync(path.resolve(this.project_path_s, "package.json"), "utf8")).version;
-		}
 	}
 	/* ***************private*************** */
 	/* ***************public*************** */
 	/**当前任务信息 */
 	public task_info: _compile.task_info;
-	/**项目路径 */
-	public project_path_s = path.normalize(__dirname.slice(0, __dirname.indexOf("node_modules")));
-	/**项目版本 */
-	public project_version_s: string;
 	/* ***************功能函数*************** */
 	/**编译项目 */
 	private _complier(ts_config_parse_: ts.ParsedCommandLine): boolean {
@@ -71,24 +66,28 @@ class compile extends instance_base {
 			// 获取所有根目录
 			{
 				if (option.rootDirs) {
-					option.rootDirs.forEach(v1_s=> {
+					option.rootDirs.forEach(v1_s => {
 						root_dir_ss.push(path.resolve(v1_s));
 					});
 				} else {
-					root_dir_ss.push(path.resolve(option.rootDir || option.project || <string>option.baseDir));
+					root_dir_ss.push(
+						path.resolve(option.rootDir || option.project || <string>option.baseDir)
+					);
 				}
 			}
 			// 更新包含文件
 			{
 				let temp1_s: string;
-				root_dir_ss.forEach(v1_s=> {
-					include_file_ss.push(...file_name_ss.map((v2_s)=> {
-						temp1_s = path.resolve(v2_s);
-						if (temp1_s.indexOf(v1_s) === 0) {
-							return temp1_s;
-						}
-						return path.resolve(v1_s, v2_s);
-					}));
+				root_dir_ss.forEach(v1_s => {
+					include_file_ss.push(
+						...file_name_ss.map(v2_s => {
+							temp1_s = path.resolve(v2_s);
+							if (temp1_s.indexOf(v1_s) === 0) {
+								return temp1_s;
+							}
+							return path.resolve(v1_s, v2_s);
+						})
+					);
 				});
 			}
 		}
@@ -101,9 +100,13 @@ class compile extends instance_base {
 			let all_diagnostics = ts.getPreEmitDiagnostics(program).concat(emit_result.diagnostics);
 			all_diagnostics.forEach(diagnostics => {
 				if (diagnostics.file) {
-					let { line, character } = diagnostics.file.getLineAndCharacterOfPosition(diagnostics.start!)
-					let message = ts.flattenDiagnosticMessageText(diagnostics.messageText, '\n');
-					log.instance().w(`${diagnostics.file.fileName} (${line + 1}, ${character + 1}): ${message}`);
+					let { line, character } = diagnostics.file.getLineAndCharacterOfPosition(
+						diagnostics.start!
+					);
+					let message = ts.flattenDiagnosticMessageText(diagnostics.messageText, "\n");
+					log.instance().w(
+						`${diagnostics.file.fileName} (${line + 1}, ${character + 1}): ${message}`
+					);
 				} else {
 					// log.instance().w(ts.flattenDiagnosticMessageText(diagnostics.messageText, '\n'))
 				}
@@ -117,10 +120,12 @@ class compile extends instance_base {
 		{
 			let stdout_s = "";
 			try {
-				stdout_s = child_process.execSync("npm ls --production --parseable", {
-					"cwd": input_s_,
-					"stdio": "pipe"
-				}).toString();
+				stdout_s = child_process
+					.execSync("npm ls --production --parseable", {
+						cwd: input_s_,
+						stdio: "pipe",
+					})
+					.toString();
 			} catch (e) {
 				log.instance().w("获取依赖模块失败");
 			}
@@ -129,15 +134,20 @@ class compile extends instance_base {
 			// 清除无用参数
 			{
 				include_package_ss.shift();
-				include_package_ss = include_package_ss.filter(v1_s=> v1_s);
+				include_package_ss = include_package_ss.filter(v1_s => v1_s);
 			}
 			if (include_package_ss.length) {
 				// 去除目录尾
 				{
 					let temp1_s = `node_modules${path.sep}`;
 					let end_n: number;
-					include_package_ss = include_package_ss.map(v1_s=> {
-						if (~(end_n = v1_s.indexOf(path.sep, v1_s.indexOf(temp1_s) + temp1_s.length))) {
+					include_package_ss = include_package_ss.map(v1_s => {
+						if (
+							~(end_n = v1_s.indexOf(
+								path.sep,
+								v1_s.indexOf(temp1_s) + temp1_s.length
+							))
+						) {
 							return v1_s.slice(0, end_n + path.sep.length);
 						} else {
 							return v1_s;
@@ -147,8 +157,8 @@ class compile extends instance_base {
 				// 去重
 				include_package_ss = [...new Set(include_package_ss)];
 				// 拷贝依赖包
-				include_package_ss.forEach(v1_s=> {
-					tool.file.search(v1_s, /(\.js$)|(package\.json$)/g).forEach(v2_s=> {
+				include_package_ss.forEach(v1_s => {
+					tool.file.search(v1_s, /(\.js$)|(package\.json$)/g).forEach(v2_s => {
 						tool.file.copy(v2_s, v2_s.replace(input_s_, output_s_));
 					});
 				});
@@ -159,13 +169,11 @@ class compile extends instance_base {
 	private _copy_other_file(path_s_: string, output_s_: string, output_src_s_: string) {
 		/**拷贝文件 */
 		let copy_file_ss = tool.file.search(path_s_, /(.*(?<!(\.ts)|(\.js))$)/g, {
-			"type_n": tool.file.file_type.file,
-			"exclude_ss": [
-				path.resolve(path_s_, "node_modules"),
-			]
+			type_n: tool.file.file_type.file,
+			exclude_ss: [path.resolve(path_s_, "node_modules")],
 		});
 		/**输出文件 */
-		copy_file_ss.forEach(v1_s=> {
+		copy_file_ss.forEach(v1_s => {
 			tool.file.copy(v1_s, v1_s.replace(path_s_, output_src_s_));
 		});
 		// 拷贝项目配置文件至包根目录
@@ -174,18 +182,18 @@ class compile extends instance_base {
 			path.resolve(path_s_, "package.json"),
 			path.resolve(path_s_, "package-lock.json"),
 		];
-		config_file_ss.forEach(v1_s=> {
+		config_file_ss.forEach(v1_s => {
 			tool.file.copy(v1_s, v1_s.replace(path_s_, output_s_));
 		});
 	}
 	/**更新当前任务信息 */
 	private _update_task_info(path_s_: string): boolean {
-		let task_info = new _compile.task_info;
+		let task_info = new _compile.task_info();
 		task_info.package_dir_s = path.resolve(path_s_);
 		/**package.json路径 */
 		let package_config_path_s = path.resolve(task_info.package_dir_s, "package.json");
 		/**tsconfig.json路径 */
-        let ts_config_path_s = path.resolve(task_info.package_dir_s, "tsconfig.json");
+		let ts_config_path_s = path.resolve(task_info.package_dir_s, "tsconfig.json");
 		// 安检
 		{
 			if (!fs.existsSync(package_config_path_s)) {
@@ -211,10 +219,35 @@ class compile extends instance_base {
 			task_info.tsconfig = <any>temp2.config;
 			// 解析配置文件
 			{
-				task_info.tsconfig_parse = ts.parseJsonConfigFileContent(task_info.tsconfig, ts.sys, path.dirname(ts_config_path_s));
+				task_info.tsconfig_parse = ts.parseJsonConfigFileContent(
+					task_info.tsconfig,
+					ts.sys,
+					path.dirname(ts_config_path_s)
+				);
 				if (task_info.tsconfig_parse.errors && task_info.tsconfig_parse.errors.length) {
 					log.instance().e("解析配置文件错误", task_info.tsconfig_parse.errors);
 					return false;
+				}
+			}
+			// 更新项目信息
+			{
+				task_info.project_path_s = path.dirname(
+					path.dirname(task_info.tsconfig_parse.options.outDir)
+				);
+				if (fs.existsSync(path.resolve(task_info.project_path_s, "project.json"))) {
+					task_info.project_version_s = JSON.parse(
+						fs.readFileSync(
+							path.resolve(task_info.project_path_s, "project.json"),
+							"utf8"
+						)
+					).version;
+				} else if (fs.existsSync(path.resolve(task_info.project_path_s, "package.json"))) {
+					task_info.project_version_s = JSON.parse(
+						fs.readFileSync(
+							path.resolve(task_info.project_path_s, "package.json"),
+							"utf8"
+						)
+					).version;
 				}
 			}
 		}
@@ -237,32 +270,47 @@ class compile extends instance_base {
 			let modify_b = false;
 			let main_s = path.resolve(output_dir_s_, this.task_info.package_config.main);
 			if (!fs.existsSync(main_s)) {
-				let reg = new RegExp(`${path.normalize(this.task_info.package_config.main).replace(/\\/g, "\\\\").replace(/\./g, "\\.")}$`);
-				main_s = tool.file.search(
-					output_dir_s_,
-					reg,
-					{
-						"type_n": tool.file.file_type.file,
-						"exclude_ss": [path.resolve(output_dir_s_, "node_modules")]
-					}
-				)[0];
+				let reg = new RegExp(
+					`${path
+						.normalize(this.task_info.package_config.main)
+						.replace(/\\/g, "\\\\")
+						.replace(/\./g, "\\.")}$`
+				);
+				let main_s = tool.file.search(output_dir_s_, reg, {
+					type_n: tool.file.file_type.file,
+					exclude_ss: [path.resolve(output_dir_s_, "node_modules")],
+				})[0];
+				if (!main_s) {
+					log.instance().e("未找到入口文件", this.task_info.package_config.main);
+					return;
+				}
 				let wirter_s = main_s.replace(output_dir_s_ + path.sep, "").replace(/\\/g, `/`);
-				package_config_s = package_config_s.replace(this.task_info.package_config.main, wirter_s);
+				package_config_s = package_config_s.replace(
+					this.task_info.package_config.main,
+					wirter_s
+				);
 				this.task_info.package_config.main = main_s;
 				modify_b = true;
 			}
 			let panel_main_s = path.resolve(output_dir_s_, panel_main_dir_s);
 			if (!fs.existsSync(panel_main_s)) {
-				let reg = new RegExp(`${path.normalize(panel_main_dir_s).replace(/\\/g, "\\\\").replace(/\./g, "\\.")}$`);
-				panel_main_s = tool.file.search(
-					output_dir_s_,
-					reg,
-					{
-						"type_n": tool.file.file_type.file,
-						"exclude_ss": [path.resolve(output_dir_s_, "node_modules")]
-					}
-				)[0];
-				let wirter_s = panel_main_s.replace(output_dir_s_ + path.sep, "").replace(/\\/g, `/`);
+				let reg = new RegExp(
+					`${path
+						.normalize(panel_main_dir_s)
+						.replace(/\\/g, "\\\\")
+						.replace(/\./g, "\\.")}$`
+				);
+				panel_main_s = tool.file.search(output_dir_s_, reg, {
+					type_n: tool.file.file_type.file,
+					exclude_ss: [path.resolve(output_dir_s_, "node_modules")],
+				})[0];
+				if (!panel_main_s) {
+					log.instance().e("未找到面板入口文件", panel_main_dir_s);
+					return;
+				}
+				let wirter_s = panel_main_s
+					.replace(output_dir_s_ + path.sep, "")
+					.replace(/\\/g, `/`);
 				package_config_s = package_config_s.replace(panel_main_dir_s, wirter_s);
 				this.task_info.package_config.panel.main = panel_main_dir_s = panel_main_s;
 				modify_b = true;
@@ -280,10 +328,19 @@ class compile extends instance_base {
 			/**面板入口脚本所在目录 */
 			let panel_dir_s: string;
 			{
-				let temp1_s = panel_main_dir_s.slice(panel_main_dir_s.indexOf("packages") + "packages".length, panel_main_dir_s.length);
-				panel_dir_s = (path.join("${Editor.Project.path}", "packages", path.dirname(temp1_s)) + path.sep).replace(/\\/g, "/");;
+				let temp1_s = panel_main_dir_s.slice(
+					panel_main_dir_s.indexOf("packages") + "packages".length,
+					panel_main_dir_s.length
+				);
+				panel_dir_s = (
+					path.join("${Editor.Project.path}", "packages", path.dirname(temp1_s)) +
+					path.sep
+				).replace(/\\/g, "/");
 			}
-			panel_main_s = panel_main_s.replace("Object.defineProperty(exports", "Object.defineProperty(module.exports");
+			panel_main_s = panel_main_s.replace(
+				"Object.defineProperty(exports",
+				"Object.defineProperty(module.exports"
+			);
 			/**node_modules路径 */
 			let node_module_dir_s = path.resolve(package_dir_s, "node_modules");
 			panel_main_s = panel_main_s.replace(/(?<=(require\())[^)]*/g, function (v_s) {
@@ -294,7 +351,9 @@ class compile extends instance_base {
 				}
 				// 全局模块/npm模块
 				else if (fs.existsSync(path.resolve(node_module_dir_s, content_s))) {
-					return `\`${path.join(package_dir_s, "node_modules", content_s).replace(/\\/g, "/")}\``;
+					return `\`${path
+						.join(package_dir_s, "node_modules", content_s)
+						.replace(/\\/g, "/")}\``;
 				}
 				return v_s;
 			});
@@ -315,7 +374,7 @@ class compile extends instance_base {
 		}
 		let archiver_zip = archiver("zip");
 		archiver_zip.pipe(fs.createWriteStream(output_path_s_));
-		archiver_zip.on('error', (error)=> {
+		archiver_zip.on("error", error => {
 			throw error;
 		});
 		archiver_zip.directory(src_path_s_, false);
@@ -323,8 +382,8 @@ class compile extends instance_base {
 		log.instance().time_end("zip");
 	}
 	// 编译单包
-    public async single(path_s_: string): Promise<void> {
-        // 路径转换
+	public async single(path_s_: string): Promise<void> {
+		// 路径转换
 		path_s_ = path.resolve(path_s_);
 		log.instance().time_start("compile");
 		// 更新任务信息
@@ -348,7 +407,7 @@ class compile extends instance_base {
 		// 编译
 		{
 			/**包含文件 */
-			await log.instance().anim("旋转跳跃", ["编译"], ()=> {
+			await log.instance().anim("旋转跳跃", ["编译"], () => {
 				if (!this._complier(tsconfig_parse)) {
 					log.instance().p("编译错误");
 				}
@@ -366,23 +425,27 @@ class compile extends instance_base {
 				output_dir_s_,
 				new RegExp(`${package_src_dir_s}$`),
 				{
-					"type_n": tool.file.file_type.dir,
-					"exclude_ss": [path.resolve(output_dir_s_, "node_modules")]
+					type_n: tool.file.file_type.dir,
+					exclude_ss: [path.resolve(output_dir_s_, "node_modules")],
 				}
 			)[1];
-			await log.instance().anim("旋转跳跃", ["拷贝依赖文件"], ()=> {
+			await log.instance().anim("旋转跳跃", ["拷贝依赖文件"], () => {
 				this._copy_dependent_module(path_s_, output_dir_s_);
 				this._copy_other_file(path_s_, output_dir_s_, package_out_src_dir_s);
 			});
 			log.instance().time_log("compile", "拷贝依赖文件");
 		}
 		// 处理入口脚本
-		if (this.project_version_s.startsWith("2")) {
-			this._panel_entry_process();
-			log.instance().time_log("compile", "处理入口脚本");
+		if (this.task_info.project_version_s) {
+			if (this.task_info.project_version_s.startsWith("2")) {
+				this._panel_entry_process();
+				log.instance().time_log("compile", "处理入口脚本");
+			}
+		} else {
+			log.instance().w("未获取到项目配置信息，无法处理入口脚本");
 		}
 		log.instance().time_end("compile");
-    }
+	}
 }
 
-export default new compile;
+export default new compile();
