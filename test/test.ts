@@ -37,25 +37,27 @@ import * as cc_plugin_cli from "../index";
 	try {
 		await cc_plugin_cli.custom_process.instance().process_start_task;
 		// await cc_plugin_cli.compile.single("../../../../NewProject_5/packages_dev/mk_framework");
-		await cc_plugin_cli.compile.single("G:/mk_framework/packages_dev/script-generate");
+
+		// await cc_plugin_cli.compile.single("G:/mk_framework/packages_dev/event-bind");
+		// await cc_plugin_cli.compile.single("G:/mk_framework/packages_dev/event-interception");
+		// await cc_plugin_cli.compile.single("G:/mk_framework/packages_dev/path-generate");
+		// await cc_plugin_cli.compile.single("G:/mk_framework/packages_dev/proto-generate");
+		// await cc_plugin_cli.compile.single("G:/mk_framework/packages_dev/script-manage");
+		// await cc_plugin_cli.compile.single("H:/mk_framework/packages_dev/nodes");
 
 		// cc_plugin_cli.compile.generate_zip("../../../../NewProject_5/packages/mk_framework", "../../../../NewProject_5/packages/mk_framework.zip");
 		// await cc_plugin_cli.compile.single("../../../../NewProject_6/extensions_dev/mk_framework");
 		// cc_plugin_cli.compile.generate_zip("../../../../NewProject_6/extensions/mk_framework", "../../../../NewProject_6/extensions/mk_framework.zip");
-		cc_plugin_cli.custom_process
-			.instance()
-			.log_anim.send(
-				new cc_plugin_cli.custom_process.event({
-					common_id: cc_plugin_cli.custom_process.event_type.exit,
-				})
-			);
+		cc_plugin_cli.custom_process.instance().log_anim.send(
+			new cc_plugin_cli.custom_process.event({
+				common_id: cc_plugin_cli.custom_process.event_type.exit,
+			})
+		);
 	} catch (e) {
-		cc_plugin_cli.custom_process
-			.instance()
-			.log_anim.send(
-				new cc_plugin_cli.custom_process.event({
-					common_id: cc_plugin_cli.custom_process.event_type.exit,
-				})
-			);
+		cc_plugin_cli.custom_process.instance().log_anim.send(
+			new cc_plugin_cli.custom_process.event({
+				common_id: cc_plugin_cli.custom_process.event_type.exit,
+			})
+		);
 	}
 })();

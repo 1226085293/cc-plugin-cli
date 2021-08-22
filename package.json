@@ -1,6 +1,6 @@
 {
 	"name": "@muzzik/cc-plugin-cli",
-	"version": "1.0.4",
+	"version": "1.0.6",
 	"description": "cocos creator插件编译包",
 	"main": "index.js",
 	"scripts": {
@@ -13,7 +13,11 @@
 		"cocos插件编译"
 	],
 	"author": "_muzzik",
-	"license": "ISC",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/1226085293/cc-plugin-cli"
+	},
 	"bin": {
 		"cc-plugin-cli": "bin/cc-plugin-cli.js"
 	},
