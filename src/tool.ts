@@ -1,11 +1,2 @@
-import byte from "./tool/byte";
-import file from "./tool/file";
-import math from "./tool/math";
-
-const tool = {
-    math,
-    byte,
-    file,
-};
-
+import * as tool from "./tool/tool_export";
 export default tool;

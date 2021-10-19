@@ -1,4 +1,2 @@
-import base from "./math/base";
-import power from "./math/power";
-
-export default Object.assign(base, { power });
+import * as math from "./math/math_export";
+export default math;

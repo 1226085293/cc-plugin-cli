@@ -179,7 +179,6 @@ class compile extends instance_base {
 		});
 		// 拷贝项目配置文件至包根目录
 		let config_file_ss = [
-			path.resolve(path_s_, "tsconfig.json"),
 			path.resolve(path_s_, "package.json"),
 			path.resolve(path_s_, "package-lock.json"),
 		];
@@ -255,8 +254,8 @@ class compile extends instance_base {
 		this.task_info = task_info;
 		return true;
 	}
-	/**处理面板入口脚本 */
-	private _panel_entry_process(): void {
+	/**2.x面板入口脚本处理 */
+	private _2x_panel_entry_process(): void {
 		/**输出目录 */
 		let output_dir_s_ = path.normalize(this.task_info.tsconfig_parse.options.outDir);
 		/**输出目录名 */
@@ -416,25 +415,75 @@ class compile extends instance_base {
 		/**输出目录 */
 		let output_dir_s = path.normalize(this.task_info.tsconfig_parse.options.outDir);
 		/**输入路径 */
-		let i18n_input_path_s = "i18n";
+		let input_path_s = "i18n";
 		/**输出路径 */
-		let i18n_ouput_path_s = path.resolve(output_dir_s, i18n_input_path_s);
-		if (fs.existsSync(i18n_ouput_path_s)) {
+		let ouput_path_s = path.resolve(output_dir_s, input_path_s);
+		if (fs.existsSync(ouput_path_s)) {
 			return;
 		}
 		// 查找i18n路径
 		{
-			let reg = new RegExp(`${i18n_input_path_s}`);
-			i18n_ouput_path_s = tool.file.search(output_dir_s, reg, {
+			let reg = new RegExp(`${input_path_s}`);
+			ouput_path_s = tool.file.search(output_dir_s, reg, {
 				type_n: tool.file.file_type.dir,
 				exclude_ss: [path.resolve(output_dir_s, "node_modules")],
 			})[0];
-			if (!i18n_ouput_path_s) {
+			if (!ouput_path_s) {
 				return;
 			}
 		}
 		// 移动i18n
-		fs.renameSync(i18n_ouput_path_s, path.resolve(output_dir_s, i18n_input_path_s));
+		fs.renameSync(ouput_path_s, path.resolve(output_dir_s, input_path_s));
+	}
+	/**3.x包信息路径转换 */
+	private _3x_package_path_conversion(): void {
+		/**输出目录 */
+		let output_dir_s = path.normalize(this.task_info.tsconfig_parse.options.outDir);
+		/**package.json路径 */
+		let package_path_s = path.resolve(output_dir_s, "package.json");
+		/**package.json */
+		let package_s = fs.readFileSync(package_path_s, "utf-8");
+		tool.object.traverse(this.task_info.package_config, (value, key_s, path_s) => {
+			// 路径安检
+			{
+				if (typeof value !== "string") {
+					return;
+				}
+				if (!value.startsWith("./")) {
+					return;
+				}
+			}
+			// 替换路径
+			{
+				/**输入路径 */
+				let input_path_s = value;
+				/**输出路径 */
+				let ouput_path_s = path.resolve(output_dir_s, input_path_s);
+				if (fs.existsSync(ouput_path_s)) {
+					return;
+				}
+				// 查找路径
+				{
+					let reg = new RegExp(
+						path
+							.normalize(`${input_path_s.slice(2, input_path_s.length)}`)
+							.replace(new RegExp(path.sep + path.sep, "g"), path.sep + path.sep)
+					);
+					ouput_path_s = tool.file.search(output_dir_s, reg, {
+						type_n: tool.file.file_type.file | tool.file.file_type.dir,
+						exclude_ss: [path.resolve(output_dir_s, "node_modules")],
+					})[0];
+					if (!ouput_path_s) {
+						return;
+					}
+				}
+				// 替换无效路径
+				ouput_path_s = "." + ouput_path_s.replace(output_dir_s, "").replace(/\\/g, "/");
+				package_s = package_s.replace(value, ouput_path_s);
+			}
+		});
+		// 更新package.json
+		fs.writeFileSync(package_path_s, package_s, "utf-8");
 	}
 	/**压缩 */
 	public generate_zip(src_path_s_: string, output_path_s_: string): void {
@@ -519,14 +568,20 @@ class compile extends instance_base {
 			});
 			this._log.time_log("compile", "移动i18n");
 		}
-		// 处理入口脚本
-		if (this.task_info.project_version_s) {
-			if (this.task_info.project_version_s.startsWith("2")) {
-				this._panel_entry_process();
-				this._log.time_log("compile", "处理入口脚本");
+		// 后处理
+		{
+			if (this.task_info.project_version_s) {
+				let version_s = this.task_info.project_version_s;
+				if (version_s.startsWith("2")) {
+					this._2x_panel_entry_process();
+					this._log.time_log("compile", "处理入口脚本");
+				} else if (version_s.startsWith("3")) {
+					this._3x_package_path_conversion();
+					this._log.time_log("compile", "package路径转换");
+				}
+			} else {
+				this._log.w("未获取到项目配置信息，无法进行后处理");
 			}
-		} else {
-			this._log.w("未获取到项目配置信息，无法处理入口脚本");
 		}
 		this._log.time_end("compile");
 	}

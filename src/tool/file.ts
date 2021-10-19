@@ -50,13 +50,12 @@ module file {
 				return result_ss_;
 			}
 			// 匹配规则
-			{
-				if (byte.getbit(config_.type_n, file.file_type.dir)) {
-					if (path_s_.match(match_)) {
-						result_ss_.push(path_s_);
-					}
+			if (byte.getbit(config_.type_n, file.file_type.dir)) {
+				if (path_s_.match(match_)) {
+					result_ss_.push(path_s_);
 				}
 			}
+			// 遍历文件夹
 			fs.readdirSync(path_s_).forEach(v1_s => {
 				_search(path.resolve(path_s_, v1_s), match_, config_, result_ss_);
 			});
