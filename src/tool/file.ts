@@ -80,7 +80,7 @@ module file {
 	): string[] {
 		let config = new file.search_config(config_);
 		config.exclude_ss = config.exclude_ss.map(v1_s => path.resolve(v1_s));
-		return _search(path.resolve(root_s_), match_, config_, []);
+		return _search(path.resolve(root_s_), match_, config, []);
 	}
 	/**拷贝文件/目录 */
 	export function copy(input_s_: string, output_s_: string) {
