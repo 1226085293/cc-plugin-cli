@@ -217,6 +217,14 @@ class compile extends instance_base {
 			}
 			task_info.package_config = temp1.config;
 			task_info.tsconfig = <any>temp2.config;
+			// 去除 include 外部目录，防止包含未引用脚本
+			{
+				task_info.tsconfig.include.filter((v1, k1_n) => {
+					if (v1.indexOf("..") !== -1) {
+						task_info.tsconfig.include.splice(k1_n, 1);
+					}
+				});
+			}
 			// 解析配置文件
 			{
 				task_info.tsconfig_parse = ts.parseJsonConfigFileContent(
