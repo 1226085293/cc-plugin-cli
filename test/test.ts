@@ -13,7 +13,7 @@ import * as fs from "fs";
 		}
 		// 编译单包
 		// await cc_plugin_cli.compile.single("D:/work/plugin_test/extensions_dev/script-manage");
-		await cc_plugin_cli.compile.single("D:/work/billiard3/extensions_dev/mk-render");
+		await cc_plugin_cli.compile.single("D:/work/billiard3/extensions_dev/mk-nodes");
 
 		cc_plugin_cli.custom_process.instance().log_anim.send(
 			new cc_plugin_cli.custom_process.event({

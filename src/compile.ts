@@ -115,56 +115,55 @@ class compile extends instance_base {
 		}
 		return !emit_result.emitSkipped;
 	}
+	/**获取依赖模块列表 */
+	private _get_depend_module(depend_ss_: string[], result_ = Object.create(null)): any {
+		let module_root_path_s = path.join(this.task_info.package_dir_s, "node_modules");
+		let module_path_s: string;
+		let package_config: any;
+		depend_ss_.forEach(v1_s => {
+			result_[v1_s] = true;
+			if (
+				!fs.existsSync(
+					(module_path_s = path.join(module_root_path_s, v1_s, "package.json"))
+				)
+			) {
+				return;
+			}
+			package_config = JSON.parse(fs.readFileSync(module_path_s, "utf-8"));
+			// 递归获取依赖模块
+			if (package_config.dependencies) {
+				this._get_depend_module(
+					Object.keys(package_config.dependencies).filter(v2_s => !result_[v2_s]),
+					result_
+				);
+			}
+		});
+		return result_;
+	}
 	/**拷贝依赖模块 */
 	private _copy_dependent_module(input_s_: string, output_s_: string): void {
-		// 添加依赖包路径
+		/**依赖模块 */
+		let depend_module_ss = Object.keys(
+			this._get_depend_module(Object.keys(this.task_info.package_config.dependencies))
+		);
+		// 补齐目录头
 		{
-			let stdout_s = "";
-			try {
-				stdout_s = child_process
-					.execSync("npm ls --production --parseable", {
-						cwd: input_s_,
-						stdio: "pipe",
-					})
-					.toString();
-			} catch (e) {
-				this._log.w("获取依赖模块失败");
-			}
-			/**依赖包 */
-			let include_package_ss = stdout_s.split("\n");
-			// 清除无用参数
-			{
-				include_package_ss.shift();
-				include_package_ss = include_package_ss.filter(v1_s => v1_s);
-			}
-			if (include_package_ss.length) {
-				// 去除目录尾
-				{
-					let temp1_s = `node_modules${path.sep}`;
-					let end_n: number;
-					include_package_ss = include_package_ss.map(v1_s => {
-						if (
-							~(end_n = v1_s.indexOf(
-								path.sep,
-								v1_s.indexOf(temp1_s) + temp1_s.length
-							))
-						) {
-							return v1_s.slice(0, end_n + path.sep.length);
-						} else {
-							return v1_s;
-						}
-					});
-				}
-				// 去重
-				include_package_ss = [...new Set(include_package_ss)];
-				// 拷贝依赖包
-				include_package_ss.forEach(v1_s => {
-					tool.file.search(v1_s, /(\.js$)|(package\.json$)/g).forEach(v2_s => {
-						tool.file.copy(v2_s, v2_s.replace(input_s_, output_s_));
-					});
-				});
-			}
+			let module_root_path_s = path.join(this.task_info.package_dir_s, "node_modules");
+			depend_module_ss.forEach((v1_s, k1_n) => {
+				depend_module_ss[k1_n] = path.join(module_root_path_s, depend_module_ss[k1_n]);
+			});
 		}
+		// 拷贝依赖包
+		depend_module_ss.forEach(v1_s => {
+			// 排除以 .d.ts | .md | LICENSE 结尾的文件
+			tool.file
+				.search(v1_s, /(.*(?<!(\.d\.ts)|(\.md)|(LICENSE))$)/g, {
+					type_n: tool.file.file_type.file,
+				})
+				.forEach(v2_s => {
+					tool.file.copy(v2_s, v2_s.replace(input_s_, output_s_));
+				});
+		});
 	}
 	/**拷贝其他文件 */
 	private _copy_other_file(path_s_: string, output_s_: string, output_src_s_: string) {
