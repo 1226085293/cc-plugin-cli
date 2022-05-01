@@ -553,18 +553,15 @@ class compile extends instance_base {
 		}
 		// 拷贝依赖文件
 		{
-			/**包源输出目录 */
-			let package_out_src_dir_s = tool.file.search(
-				output_dir_s_,
-				new RegExp(`${package_src_dir_s}$`),
-				{
+			/**输出目录 */
+			let out_src_dir_s =
+				tool.file.search(output_dir_s_, new RegExp(`${package_src_dir_s}$`), {
 					type_n: tool.file.file_type.dir,
 					exclude_ss: [path.resolve(output_dir_s_, "node_modules")],
-				}
-			)[1];
+				})[1] || output_dir_s_;
 			await this._log.anim("旋转跳跃", ["拷贝依赖文件"], () => {
 				this._copy_dependent_module(path_s_, output_dir_s_);
-				this._copy_other_file(path_s_, output_dir_s_, package_out_src_dir_s);
+				this._copy_other_file(path_s_, output_dir_s_, out_src_dir_s);
 			});
 			this._log.time_log("compile", "拷贝依赖文件");
 		}
