@@ -13,7 +13,7 @@ import * as fs from "fs";
 		}
 		// 编译单包
 		// await cc_plugin_cli.compile.single("D:/work/plugin_test/extensions_dev/script-manage");
-		await cc_plugin_cli.compile.single("D:/work/billiard3/extensions_dev/mk-nodes");
+		await cc_plugin_cli.compile.single("F:/work/mk_framework/extensions_dev/mk_inspector_bind");
 
 		cc_plugin_cli.custom_process.instance().log_anim.send(
 			new cc_plugin_cli.custom_process.event({
@@ -21,6 +21,7 @@ import * as fs from "fs";
 			})
 		);
 	} catch (e) {
+		console.error(e);
 		cc_plugin_cli.custom_process.instance().log_anim.send(
 			new cc_plugin_cli.custom_process.event({
 				common_id: cc_plugin_cli.custom_process.event_type.exit,

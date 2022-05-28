@@ -22,6 +22,13 @@ module file {
 		/**排除路径 */
 		exclude_ss?: string[] = [];
 	}
+	export class del_config {
+		constructor(init_?: del_config) {
+			Object.assign(this, init_);
+		}
+		/**排除路径 */
+		exclude_ss?: string[] = [];
+	}
 	/*---------function_private */
 	/**保证目录存在 */
 	function _ensure_path_exists(path_s_: string): void {
@@ -71,6 +78,28 @@ module file {
 		}
 		return result_ss_;
 	}
+	/**删除文件/目录 */
+	function _del(path_s_: string, config_: del_config): void {
+		// 如果是排除目录和不存在的目录则退出
+		if (config_.exclude_ss.includes(path_s_) || !fs.existsSync(path_s_)) {
+			return;
+		}
+		if (fs.statSync(path_s_).isDirectory()) {
+			/**当前路径 */
+			let curr_path_s: string;
+			// 遍历文件夹
+			fs.readdirSync(path_s_).forEach(v1_s => {
+				curr_path_s = path.resolve(path_s_, v1_s);
+				_del(curr_path_s, config_);
+			});
+			// 删除空文件夹
+			if (!config_.exclude_ss.filter(v_s => v_s.startsWith(path_s_)).length) {
+				fs.rmdirSync(path_s_);
+			}
+		} else {
+			fs.unlinkSync(path_s_);
+		}
+	}
 	/*---------function_public */
 	/**搜索文件/目录 */
 	export function search(
@@ -104,26 +133,11 @@ module file {
 		}
 	}
 	/**删除文件/目录 */
-	export function del(path_s_: string): void {
-		// 安检
-		if (!fs.existsSync(path_s_)) {
-			return;
-		}
-		if (fs.statSync(path_s_).isDirectory()) {
-			/**当前路径 */
-			let curr_path_s: string;
-			// 遍历文件夹
-			fs.readdirSync(path_s_).forEach(v1_s => {
-				curr_path_s = path.resolve(path_s_, v1_s);
-				del(curr_path_s);
-			});
-			// 删除空文件夹
-			fs.rmdirSync(path_s_);
-		} else {
-			fs.unlinkSync(path_s_);
-		}
+	export function del(path_s_: string, config_ = new del_config()): void {
+		let config = new file.del_config(config_);
+		config.exclude_ss = config.exclude_ss.map(v1_s => path.resolve(v1_s));
+		return _del(path.resolve(path_s_), config);
 	}
-	/*---------logic */
 }
 
 export default file;

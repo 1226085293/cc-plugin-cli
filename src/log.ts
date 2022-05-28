@@ -44,7 +44,6 @@ module _log {
 	}
 	/*---------function_private */
 	/*---------function_public */
-	/*---------logic */
 }
 
 class log extends instance_base {
@@ -308,7 +307,6 @@ module log {
 	/*---------class_public */
 	/*---------function_private */
 	/*---------function_public */
-	/*---------logic */
 }
 
 export default log;

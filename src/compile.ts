@@ -25,6 +25,8 @@ module _compile {
 		}
 		/**包路径 */
 		public package_dir_s: string;
+		/**输出目录 package.json */
+		public output_package_config: any;
 		/**package.json */
 		public package_config: any;
 		/**tsconfig */
@@ -38,7 +40,6 @@ module _compile {
 	}
 	/*---------function_private */
 	/*---------function_public */
-	/*---------logic */
 }
 
 class compile extends instance_base {
@@ -142,13 +143,17 @@ class compile extends instance_base {
 	}
 	/**拷贝依赖模块 */
 	private _copy_dependent_module(input_s_: string, output_s_: string): void {
+		/** 模块根目录 */
+		let module_root_path_s = path.join(this.task_info.package_dir_s, "node_modules");
+		if (fs.existsSync(path.join(output_s_, "node_modules"))) {
+			return;
+		}
 		/**依赖模块 */
 		let depend_module_ss = Object.keys(
 			this._get_depend_module(Object.keys(this.task_info.package_config.dependencies))
 		);
 		// 补齐目录头
 		{
-			let module_root_path_s = path.join(this.task_info.package_dir_s, "node_modules");
 			depend_module_ss.forEach((v1_s, k1_n) => {
 				depend_module_ss[k1_n] = path.join(module_root_path_s, depend_module_ss[k1_n]);
 			});
@@ -209,6 +214,14 @@ class compile extends instance_base {
 		{
 			let temp1 = ts.readConfigFile(package_config_path_s, ts.sys.readFile);
 			let temp2 = ts.readConfigFile(ts_config_path_s, ts.sys.readFile);
+			let temp3 = ts.readConfigFile(
+				path.resolve(
+					task_info.package_dir_s,
+					temp2.config?.compilerOptions.outDir,
+					"package.json"
+				),
+				ts.sys.readFile
+			);
 			this._log.push(temp1.error);
 			this._log.push(temp2.error);
 			if (this._log.e()) {
@@ -216,6 +229,7 @@ class compile extends instance_base {
 			}
 			task_info.package_config = temp1.config;
 			task_info.tsconfig = <any>temp2.config;
+			task_info.output_package_config = temp3?.config;
 			// 去除 include 外部目录，防止包含未引用脚本
 			{
 				task_info.tsconfig.include.filter((v1, k1_n) => {
@@ -534,7 +548,36 @@ class compile extends instance_base {
 		let package_src_dir_s = path.basename(path_s_);
 		// 清理输出目录
 		{
-			tool.file.del(output_dir_s_);
+			/** 排除目录 */
+			let exclude_ss: string[] = [];
+			// node_modules 差异检测
+			if (this.task_info.output_package_config?.dependencies) {
+				/** 无差异 */
+				let not_diff_b = true;
+				/** 包数量相同 */
+				not_diff_b =
+					Object.keys(this.task_info.output_package_config.dependencies).length ===
+					Object.keys(this.task_info.package_config.dependencies).length;
+				if (not_diff_b) {
+					// 包是否一致
+					for (let k_s in this.task_info.package_config.dependencies) {
+						if (
+							this.task_info.package_config.dependencies[k_s] !==
+							this.task_info.output_package_config.dependencies[k_s]
+						) {
+							not_diff_b = false;
+							break;
+						}
+					}
+				}
+				if (not_diff_b) {
+					exclude_ss.push(path.join(output_dir_s_, "node_modules"));
+				}
+			}
+			// 避免删除 node_modules，后续差异检测
+			tool.file.del(output_dir_s_, {
+				exclude_ss: exclude_ss,
+			});
 			this._log.time_log("compile", "清理输出目录");
 		}
 		// 编译

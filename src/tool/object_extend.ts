@@ -54,7 +54,6 @@ module object_extend {
 	): void {
 		return _traverse(target_, cb_f_);
 	}
-	/*---------logic */
 }
 
 export default object_extend;
