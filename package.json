@@ -1,11 +1,11 @@
 {
 	"name": "@muzzik/cc-plugin-cli",
-	"version": "1.1.3",
+	"version": "1.1.4",
 	"description": "cocos creator插件编译包",
 	"main": "index.js",
 	"scripts": {
 		"测试": "node test/test",
-		"publish": "rd /s/q dist & tsc & rd /s/q dist\\test & copy /Y .\\package.json .\\dist\\package.json & copy /Y .\\package-lock.json .\\dist\\package-lock.json"
+		"publish": "rd /s/q dist & tsc & rd /s/q dist\\test & copy /Y .\\package.json .\\dist\\package.json & copy /Y .\\package-lock.json .\\dist\\package-lock.json & copy /Y .\\README.md .\\dist\\README.md"
 	},
 	"keywords": [
 		"cocos",
