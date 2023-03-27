@@ -3,9 +3,9 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "publish",
+			"script": "构建",
 			"problemMatcher": [],
-			"label": "npm: publish",
+			"label": "构建",
 			"detail": "rd /s/q dist & tsc & copy /Y .\\package.json .\\dist\\package.json & copy /Y .\\package-lock.json .\\dist\\package-lock.json"
 		}
 	]
