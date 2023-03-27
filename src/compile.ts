@@ -173,7 +173,7 @@ class compile extends instance_base {
 	/**拷贝其他文件 */
 	private _copy_other_file(path_s_: string, output_s_: string, output_src_s_: string) {
 		/**拷贝文件 */
-		let copy_file_ss = tool.file.search(path_s_, /(.*(?<!(\.ts)|(\.js))$)/g, {
+		let copy_file_ss = tool.file.search(path_s_, /(.*(?<!(\.ts)|(\.js)|(\\\.([^\\]*)))$)/g, {
 			type_n: tool.file.file_type.file,
 			exclude_ss: [path.resolve(path_s_, "node_modules")],
 		});
