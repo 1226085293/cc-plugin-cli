@@ -177,18 +177,27 @@ class compile extends instance_base {
 			type_n: tool.file.file_type.file,
 			exclude_ss: [path.resolve(path_s_, "node_modules")],
 		});
+
 		/**输出文件 */
 		copy_file_ss.forEach(v1_s => {
 			tool.file.copy(v1_s, v1_s.replace(path_s_, output_src_s_));
 		});
+
 		// 拷贝项目配置文件至包根目录
 		let config_file_ss = [
 			path.resolve(path_s_, "package.json"),
 			path.resolve(path_s_, "package-lock.json"),
 		];
+
 		config_file_ss.forEach(v1_s => {
 			tool.file.copy(v1_s, v1_s.replace(path_s_, output_s_));
 		});
+
+		// 删除多余 package.json
+		if (output_s_ !== output_src_s_) {
+			tool.file.del(path.join(output_src_s_, "package.json"));
+			tool.file.del(path.join(output_src_s_, "package-lock.json"));
+		}
 	}
 	/**更新当前任务信息 */
 	private _update_task_info(path_s_: string): boolean {
