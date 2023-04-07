@@ -195,8 +195,24 @@ class compile extends instance_base {
 
 		// 删除多余 package.json
 		if (output_s_ !== output_src_s_) {
-			tool.file.del(path.join(output_src_s_, "package.json"));
-			tool.file.del(path.join(output_src_s_, "package-lock.json"));
+			// 删除文件
+			{
+				tool.file.del(path.join(output_src_s_, "package.json"));
+				tool.file.del(path.join(output_src_s_, "package-lock.json"));
+			}
+
+			// 更新导入路径
+			tool.file
+				.search(output_src_s_, /\.js$/, {
+					type_n: tool.file.file_type.file,
+				})
+				.forEach(v_s => {
+					let file_s = fs
+						.readFileSync(v_s, "utf-8")
+						.replace(/\/package\.json'\)/g, "/../package.json')");
+
+					fs.writeFileSync(v_s, file_s);
+				});
 		}
 	}
 	/**更新当前任务信息 */

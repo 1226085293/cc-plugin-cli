@@ -13,7 +13,7 @@ import * as fs from "fs";
 		}
 		// 编译单包
 		// await cc_plugin_cli.compile.single("D:/work/plugin_test/extensions_dev/script-manage");
-		await cc_plugin_cli.compile.single("D:/workspace/mk_framework/extensions_dev/mk_nodes");
+		await cc_plugin_cli.compile.single("G:/work/multi_platform/extensions_dev/mk-language");
 
 		cc_plugin_cli.custom_process.instance().log_anim.send(
 			new cc_plugin_cli.custom_process.event({
