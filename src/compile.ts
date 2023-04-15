@@ -209,7 +209,7 @@ class compile extends instance_base {
 				.forEach(v_s => {
 					let file_s = fs
 						.readFileSync(v_s, "utf-8")
-						.replace(/\/package\.json('|")\)/g, "/../package.json')");
+						.replace(/\/package\.json(?=('|")\))/g, "/../package.json");
 
 					fs.writeFileSync(v_s, file_s);
 				});
