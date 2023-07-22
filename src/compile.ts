@@ -145,19 +145,21 @@ class compile extends instance_base {
 	private _copy_dependent_module(input_s_: string, output_s_: string): void {
 		/** 模块根目录 */
 		let module_root_path_s = path.join(this.task_info.package_dir_s, "node_modules");
+
 		if (fs.existsSync(path.join(output_s_, "node_modules"))) {
 			return;
 		}
+
 		/**依赖模块 */
 		let depend_module_ss = Object.keys(
-			this._get_depend_module(Object.keys(this.task_info.package_config.dependencies))
+			this._get_depend_module(Object.keys(this.task_info.package_config.dependencies ?? {}))
 		);
+
 		// 补齐目录头
-		{
-			depend_module_ss.forEach((v1_s, k1_n) => {
-				depend_module_ss[k1_n] = path.join(module_root_path_s, depend_module_ss[k1_n]);
-			});
-		}
+		depend_module_ss.forEach((v1_s, k1_n) => {
+			depend_module_ss[k1_n] = path.join(module_root_path_s, depend_module_ss[k1_n]);
+		});
+
 		// 拷贝依赖包
 		depend_module_ss.forEach(v1_s => {
 			// 排除以 .d.ts | .md | LICENSE 结尾的文件
@@ -175,10 +177,21 @@ class compile extends instance_base {
 		/**拷贝文件 */
 		let copy_file_ss = tool.file.search(path_s_, /(.*(?<!(\.ts)|(\.js)|(\\\.([^\\]*)))$)/g, {
 			type_n: tool.file.file_type.file,
-			exclude_ss: [path.resolve(path_s_, "node_modules")],
+			exclude_ss: [
+				path.resolve(path_s_, "node_modules"),
+				path.resolve(path_s_, "res"),
+				path.resolve(path_s_, ".git"),
+			],
 		});
 
-		/**输出文件 */
+		// 添加 res 内的文件
+		copy_file_ss.push(
+			...tool.file.search(path.join(path_s_, "res"), /([^]*)/g, {
+				type_n: tool.file.file_type.file,
+			})
+		);
+
+		// 输出文件
 		copy_file_ss.forEach(v1_s => {
 			tool.file.copy(v1_s, v1_s.replace(path_s_, output_src_s_));
 		});

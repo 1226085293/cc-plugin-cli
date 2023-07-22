@@ -13,9 +13,7 @@ import * as fs from "fs";
 		}
 		// 编译单包
 		// await cc_plugin_cli.compile.single("D:/work/plugin_test/extensions_dev/script-manage");
-		await cc_plugin_cli.compile.single(
-			"D:/workspace/cc-plugin-template-project/extensions_dev/mk-project-template-plugin"
-		);
+		await cc_plugin_cli.compile.single("I:/creator/demo_363/extensions_dev/cc-plugin-protobuf");
 
 		cc_plugin_cli.custom_process.instance().log_anim.send(
 			new cc_plugin_cli.custom_process.event({
