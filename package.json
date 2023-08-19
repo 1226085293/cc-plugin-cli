@@ -1,6 +1,6 @@
 {
 	"name": "@muzzik/cc-plugin-cli",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "cocos creator插件编译包",
 	"main": "index.js",
 	"scripts": {

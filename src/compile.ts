@@ -184,7 +184,10 @@ class compile extends instance_base {
 			],
 		});
 
-		// 添加 res 内的文件
+		// 清理输出的 res
+		tool.file.del(path.join(output_src_s_, "res"));
+
+		// 添加输入的 res
 		copy_file_ss.push(
 			...tool.file.search(path.join(path_s_, "res"), /([^]*)/g, {
 				type_n: tool.file.file_type.file,
