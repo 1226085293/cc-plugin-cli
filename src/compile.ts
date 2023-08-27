@@ -304,12 +304,15 @@ class compile extends instance_base {
 						)
 					).version;
 				} else if (fs.existsSync(path.resolve(task_info.project_path_s, "package.json"))) {
-					task_info.project_version_s = JSON.parse(
+					let package_config = JSON.parse(
 						fs.readFileSync(
 							path.resolve(task_info.project_path_s, "package.json"),
 							"utf8"
 						)
-					).version;
+					);
+
+					task_info.project_version_s =
+						package_config.version ?? package_config.creator.version;
 				}
 			}
 		}
